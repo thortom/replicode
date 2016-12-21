@@ -212,6 +212,7 @@ protected:
 public:
     static _Mem *Get()
     {
+//        std::cout << __FILE__ << ":" << __LINE__ << " " << __FUNCTION__ << std::endl;
         return (_Mem *)Mem::Get();
     }
 
@@ -273,6 +274,7 @@ public:
     }
     uint64_t get_tpx_time_horizon() const
     {
+        std::cout << __FUNCTION__ << " - r_exec::_Mem::Get() = " << r_exec::_Mem::Get() << "\n";
         return tpx_time_horizon;
     }
     uint64_t get_primary_thz() const

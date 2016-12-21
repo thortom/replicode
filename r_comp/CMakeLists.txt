@@ -24,3 +24,5 @@ set_property(TARGET r_comp PROPERTY CXX_STANDARD 11)
 set_property(TARGET r_comp PROPERTY CXX_STANDARD_REQUIRED ON)
 install(TARGETS r_comp DESTINATION lib)
 install(FILES ${r_comp_HDR} DESTINATION include/r_comp)
+
+target_link_libraries(r_comp r_code)

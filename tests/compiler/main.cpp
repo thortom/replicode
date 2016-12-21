@@ -18,7 +18,13 @@ namespace r_comp {
 class RepliStruct;
 }  // namespace r_comp
 
-#define USR_OPERATOR_PATH "../../build/usr_operators/libusr_operators.so"
+#ifdef __APPLE__
+	#define USR_OPERATOR_PATH "../../build/usr_operators/libusr_operators.dylib"
+#else
+	#define USR_OPERATOR_PATH "../../build/usr_operators/libusr_operators.so"
+
+#endif
+
 #define USR_CLASSES_PATH  "user.classes.replicode"
 
 int main(int argc, char *argv[])

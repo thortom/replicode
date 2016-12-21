@@ -41,6 +41,7 @@ bool IniFile::readFile(std::string filename)
 {
     std::ifstream file;
     wordexp_t exp_res;
+    memset(&exp_res, 0, sizeof(typeof(exp_res))); // hellooo
     wordexp(filename.c_str(), &exp_res, 0);
     file.open(exp_res.we_wordv[0]);
 

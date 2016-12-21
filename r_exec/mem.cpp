@@ -58,6 +58,7 @@ namespace r_exec
 
 _Mem::_Mem(): r_code::Mem(), state(NOT_STARTED), deleted(false)
 {
+    std::cout << "_Mem() called";
     new ModelBase();
     objects.reserve(1024);
 }
@@ -192,6 +193,8 @@ void _Mem::store(Code *object)
 
 bool _Mem::load(std::vector<r_code::Code *> *objects, uint64_t stdin_oid, uint64_t stdout_oid, uint64_t self_oid)
 {
+    std::cout << "r_exec::_Mem::Get() = " << r_exec::_Mem::Get() << "\n";
+
     Utils::SetReferenceValues(base_period, float_tolerance, time_tolerance);
     // load root (always comes first).
     _root = (Group *)(*objects)[0];
@@ -200,6 +203,9 @@ bool _Mem::load(std::vector<r_code::Code *> *objects, uint64_t stdin_oid, uint64
     set_last_oid(objects->size() - 1);
 
     for (uint64_t i = 1; i < objects->size(); ++i) { // skip root as it has no initial views.
+
+        std::cout << "r_exec::_Mem::Get() = " << r_exec::_Mem::Get() << "\n";
+
         Code *object = (*objects)[i];
         store(object);
 
@@ -379,6 +385,7 @@ void _Mem::stop()
 
     state = STOPPED;
     m_stateMutex.unlock();
+    ::debug("_Mem") << "_stop() waiting for core threads to join...";
 
     for (i = 0; i < m_coreThreads.size(); ++i) {
         m_coreThreads[i].join();
@@ -389,6 +396,7 @@ void _Mem::stop()
     if (m_coreCount > 0) {
         m_coresRunning.wait(lock);
     }
+    ::debug("_Mem") << "_stop() clearing core threads...";
 
     m_coreThreads.clear();
 }
@@ -968,9 +976,12 @@ void MemStatic::delete_object(r_code::Code *object)   // called only if the obje
 
 r_comp::Image *MemStatic::get_objects()
 {
+    ::debug("MemStatic") << "get_objects()...";
     r_comp::Image *image = new r_comp::Image();
     image->timestamp = Now();
     image->add_objects(objects);
+    ::debug("MemStatic") << "get_objects()...got 'em";
+
     return image;
 }
 

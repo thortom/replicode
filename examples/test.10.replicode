@@ -1,13 +1,16 @@
 ;hello world.
 ;pgm with no input will fire each time the tsc expires.
 
+!def SYNC_FRONT 1
+
 hw:(pgm
+|[]
 |[]
 |[]
 []
    (inj []
       (str "Hello World" 1)
-      [SYNC_FRONT now 1 forever root nil]
+      [SYNC_ONCE now 1 forever root nil]
    )
    (set [this.vw.act 0]); deactivate the ipgm so that the pgm runs only once.
 1
@@ -20,6 +23,7 @@ hw; code
 |[]; args
 RUN_ALWAYS; run
 100000us
+true      ;not sure what this is ? VOLATILE ; ? or does SILENT go here? silent?
 NOTIFY
 1
 )

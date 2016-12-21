@@ -177,6 +177,7 @@ public:
 #else
         std::cout << area;
 #endif
+        //s_debugSection.unlock(); // HACK: seeing why this deadlocks at all
     }
 
     ~DebugStream()
@@ -225,6 +226,11 @@ public:
         return *this;
     }
     inline const DebugStream &operator<<(const uint64_t output) const
+    {
+        std::cout << " " << output;
+        return *this;
+    }
+    inline const DebugStream &operator<<(const size_t output) const
     {
         std::cout << " " << output;
         return *this;

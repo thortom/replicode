@@ -280,6 +280,7 @@ Mem *Mem::Singleton = nullptr;
 
 Mem::Mem()
 {
+    std::cout << "Mem() called, Singleton @ " << this << "\n";
     Singleton = this;
 }
 

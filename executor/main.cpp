@@ -356,6 +356,10 @@ int main(int argc, char **argv)
     debug("main") << "shutting rMem down...";
     mem->stop();
 
+//    debug("main") << "waiting extra time for threads to shut down";
+//    std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+
+
     if (settings.get_objects) {
         //TimeProbe probe;
         //probe.set();
@@ -364,10 +368,12 @@ int main(int argc, char **argv)
         image->object_names.symbols = image->object_names.symbols;
 
         if (settings.write_objects) {
+            debug("main") << "writing objects...";
             write_to_file(image, settings.objects_path, settings.test_objects ? &decompiler : nullptr, starting_time);
         }
 
         if (settings.decompile_objects && (!settings.write_objects || !settings.test_objects)) {
+            debug("main") << "decompiling objects...";
             if (settings.decompile_to_file) { // argv[2] is a file to redirect the decompiled code to.
                 std::ofstream outfile;
                 outfile.open(settings.decompilation_file_path.c_str(), std::ios_base::trunc);
@@ -392,10 +398,12 @@ int main(int argc, char **argv)
         image->object_names.symbols = image->object_names.symbols;
 
         if (settings.write_models) {
+            debug("main") << "writing models...";
             write_to_file(image, settings.models_path, settings.test_models ? &decompiler : nullptr, starting_time);
         }
 
         if (settings.decompile_models && (!settings.write_models || !settings.test_models)) {
+            debug("main") << "decompiling models...";
             if (argc > 2) { // argv[2] is a file to redirect the decompiled code to.
                 std::ofstream outfile;
                 outfile.open(argv[2], std::ios_base::trunc);
