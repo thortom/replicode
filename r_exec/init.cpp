@@ -101,7 +101,7 @@ public:
         }
 
     #else
-        library = dlopen(fileName, RTLD_NOW | RTLD_GLOBAL);
+        library = dlopen(fileName, RTLD_LAZY | /*RTLD_GLOBAL*/ RTLD_LOCAL); // this global shit is fucking everything up i guess?
 
         if (!library) {
             std::cout << "> Error: unable to load shared library " << fileName << " :" << dlerror() << std::endl;
@@ -135,7 +135,7 @@ public:
                 std::cout << "> Error: unable to find symbol " << functionName << " :" << dlerror() << std::endl;
             } else
             {
-                std::cout << "> Found symbol " << functionName << /*" :" << dlerror() << */ std::endl;
+                std::cout << "> Found symbol " << functionName << "(" << std::hex << (void*)function << std::dec << ")" << /*" :" << dlerror() << */ std::endl;
             }
 
         }
@@ -530,7 +530,31 @@ bool Init(const char *user_operator_library_path,
         return false;
     }
 
-    typedef void (*UserGetProgramName)(char *);
+//    typedef void (*UserGetProgramName)(char *);
+//    UserGetProgramName GetProgramName = user_operator_library.getFunction<UserGetProgramName>("GetProgramName");
+//
+//    if (!GetProgramName) {
+//        return false;
+//    }
+//
+//    typedef Controller *(*UserProgram)(r_code::View *);
+//    uint16_t programCount = GetProgramCount();
+//
+//    for (uint16_t i = 0; i < programCount; ++i) {
+//        char pgm_name[256];
+//        memset(pgm_name, 0, 256);
+//        GetProgramName(pgm_name);
+//        std::string _pgm_name = pgm_name;
+//        UserProgram pgm = user_operator_library.getFunction<UserProgram>(pgm_name);
+//
+//        if (!pgm) {
+//            return false;
+//        }
+//
+//        CPPPrograms::Register(_pgm_name, pgm);
+//    }
+
+    typedef const char *(*UserGetProgramName)(int);
     UserGetProgramName GetProgramName = user_operator_library.getFunction<UserGetProgramName>("GetProgramName");
 
     if (!GetProgramName) {
@@ -541,9 +565,7 @@ bool Init(const char *user_operator_library_path,
     uint16_t programCount = GetProgramCount();
 
     for (uint16_t i = 0; i < programCount; ++i) {
-        char pgm_name[256];
-        memset(pgm_name, 0, 256);
-        GetProgramName(pgm_name);
+        const char *pgm_name = GetProgramName(i);
         std::string _pgm_name = pgm_name;
         UserProgram pgm = user_operator_library.getFunction<UserProgram>(pgm_name);
 
@@ -554,6 +576,9 @@ bool Init(const char *user_operator_library_path,
         CPPPrograms::Register(_pgm_name, pgm);
     }
 
+
+    ///////////////////
+
     // Callbacks.
     typedef uint16_t(*UserGetCallbackCount)();
     UserGetCallbackCount GetCallbackCount = user_operator_library.getFunction<UserGetCallbackCount>("GetCallbackCount");
@@ -562,7 +587,31 @@ bool Init(const char *user_operator_library_path,
         return false;
     }
 
-    typedef void (*UserGetCallbackName)(char *);
+//    typedef void (*UserGetCallbackName)(char *);
+//    UserGetCallbackName GetCallbackName = user_operator_library.getFunction<UserGetCallbackName>("GetCallbackName");
+//
+//    if (!GetCallbackName) {
+//        return false;
+//    }
+//
+//    typedef bool (*UserCallback)(uint64_t, bool, const char *, uint8_t, Code **);
+//    uint16_t callbackCount = GetCallbackCount();
+//
+//    for (uint16_t i = 0; i < callbackCount; ++i) {
+//        char callback_name[256];
+//        memset(callback_name, 0, 256);
+//        GetCallbackName(callback_name);
+//        std::string _callback_name = callback_name;
+//        UserCallback callback = user_operator_library.getFunction<UserCallback>(callback_name);
+//
+//        if (!callback) {
+//            return false;
+//        }
+//
+//        Callbacks::Register(_callback_name, callback);
+//    }
+
+    typedef const char *(*UserGetCallbackName)(int);
     UserGetCallbackName GetCallbackName = user_operator_library.getFunction<UserGetCallbackName>("GetCallbackName");
 
     if (!GetCallbackName) {
@@ -573,9 +622,7 @@ bool Init(const char *user_operator_library_path,
     uint16_t callbackCount = GetCallbackCount();
 
     for (uint16_t i = 0; i < callbackCount; ++i) {
-        char callback_name[256];
-        memset(callback_name, 0, 256);
-        GetCallbackName(callback_name);
+        const char *callback_name = GetCallbackName(i);
         std::string _callback_name = callback_name;
         UserCallback callback = user_operator_library.getFunction<UserCallback>(callback_name);
 
@@ -585,6 +632,7 @@ bool Init(const char *user_operator_library_path,
 
         Callbacks::Register(_callback_name, callback);
     }
+
 
     debug("init") << "user-defined operator library" << user_operator_library_path << "loaded";
     return true;

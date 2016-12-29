@@ -89,33 +89,41 @@ uint16_t GetProgramCount()
     return 2;
 }
 
-void GetProgramName(char *pgm_name)
-{
-    static uint16_t pgm_index = 0;
 
-    if (pgm_index == 0) {
-        std::string s = "test_program";
-        memcpy(pgm_name, s.c_str(), s.length());
-        ++pgm_index;
-        return;
-    }
+const char *GetProgramName(int idx) {
 
-    /*
-    if(pgm_index==1){
-
-    std::string s="correlator";
-    memcpy(pgm_name,s.c_str(),s.length());
-    ++pgm_index;
-    return;
-    }
-    */
-    if (pgm_index == 1) {
-        std::string s = "auto_focus";
-        memcpy(pgm_name, s.c_str(), s.length());
-        ++pgm_index;
-        return;
-    }
+    const char *prog_names[] = { "test_program", "auto_focus" };
+    return prog_names[idx];
 }
+
+
+//void GetProgramName(char *pgm_name)
+//{
+//    static uint16_t pgm_index = 0; // awesome...prevents us from reloading the dylib. lets change
+//
+//    if (pgm_index == 0) {
+//        std::string s = "test_program";
+//        memcpy(pgm_name, s.c_str(), s.length());
+//        ++pgm_index;
+//        return;
+//    }
+//
+//    /*
+//    if(pgm_index==1){
+//
+//    std::string s="correlator";
+//    memcpy(pgm_name,s.c_str(),s.length());
+//    ++pgm_index;
+//    return;
+//    }
+//    */
+//    if (pgm_index == 1) {
+//        std::string s = "auto_focus";
+//        memcpy(pgm_name, s.c_str(), s.length());
+//        ++pgm_index;
+//        return;
+//    }
+//}
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -124,14 +132,22 @@ uint16_t GetCallbackCount()
     return 1;
 }
 
-void GetCallbackName(char *callback_name)
-{
-    static uint16_t callback_index = 0;
+const char *GetCallbackName(int idx) {
 
-    if (callback_index == 0) {
-        std::string s = "print";
-        memcpy(callback_name, s.c_str(), s.length());
-        ++callback_index;
-        return;
-    }
+    const char * prog_names[] = { "print" };
+    return prog_names[idx];
 }
+
+
+
+//void GetCallbackName(char *callback_name)
+//{
+//    static uint16_t callback_index = 0;
+//
+//    if (callback_index == 0) {
+//        std::string s = "print";
+//        memcpy(callback_name, s.c_str(), s.length());
+//        ++callback_index;
+//        return;
+//    }
+//}

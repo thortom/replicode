@@ -164,9 +164,26 @@ Code *_Mem::get_self() const
 _Mem::State _Mem::check_state()
 {
     State s;
-    std::lock_guard<std::mutex> guard(m_stateMutex);
-    s = state;
-    return s;
+    try {
+        std::lock_guard<std::mutex> guard(m_stateMutex);
+//        ::debug("_Mem::check_state()") << "locked stateMutex\n";
+
+        // TODO: move inside try
+        s = state;
+        return s;
+
+    } catch(const std::system_error& e) {
+        ::debug("_Mem::check_state()")
+                << "Caught system_error with code " << e.code()
+                << " meaning " << e.what() << '\n';
+
+        // ie. bad path, not protected by mutex if it failed
+
+        s = state;
+        return s;
+
+    }
+
 }
 
 void _Mem::start_core()
@@ -177,9 +194,29 @@ void _Mem::start_core()
 
 void _Mem::shutdown_core()
 {
-    std::unique_lock<std::mutex> guard(m_coreCountMutex);
-    m_coreCount--;
-    m_coresRunning.notify_all();
+//    std::unique_lock<std::mutex> guard(m_coreCountMutex);
+    try {
+        std::unique_lock<std::mutex> guard(m_coreCountMutex);
+        // enote: looks like adding a debug here prevents the system_error exception from being thrown.
+        // evidence that we have a race condition where the mem is destroyed before all the cores shutdown
+
+        // TODO: move inside try
+        m_coreCount--;
+        m_coresRunning.notify_all();
+
+    } catch(const std::system_error& e) {
+
+        ::debug("_Mem::shutdown_core()")
+                << "Caught system_error with code " << e.code()
+                << " meaning " << e.what() << '\n';
+        ::debug("_Mem::shutdown_core()") << "m_coreCountMutex.native_handle()" << (std::hex, m_coreCountMutex.native_handle()) << (std::dec, "\n");
+
+        // bad path -- still try to clean up nice?
+//        m_coreCount--;
+//        m_coresRunning.notify_all();
+
+    }
+
 }
 
 ////////////////////////////////////////////////////////////////

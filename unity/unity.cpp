@@ -1,3 +1,7 @@
+//
+// Created by Daniel MacDonald on 12/20/16.
+//
+
 //	test.cpp
 //
 //	Author: Eric Nivel
@@ -60,6 +64,8 @@
 #include <replicode_common.h>      // for debug, DebugStream
 #include "settings.h"               // for Settings
 
+#include "callbackstream.h"         // for hooking std::cout
+
 static bool fileExists(const char *fileName)
 {
     std::ifstream infile(fileName);
@@ -74,7 +80,7 @@ r_exec::View *build_view(uint64_t time, Code* rstdin)   // this is application d
 {
     r_exec::View *view = new r_exec::View();
     const uint64_t arity = VIEW_ARITY; // reminder: opcode not included in the arity.
-    uint16_t write_index = 0;
+//    uint16_t write_index = 0;
     uint16_t extent_index = arity + 1;
     view->code(VIEW_OPCODE) = Atom::SSet(r_exec::View::ViewOpcode, arity);
     view->code(VIEW_SYNC) = Atom::Float(View::SYNC_ONCE); // sync on front.
@@ -249,17 +255,49 @@ void write_to_file(r_comp::Image *image, std::string &image_path, Decompiler *de
     delete img;
 }
 
-int main(int argc, char **argv)
-{
+// next steps:
+// x unity to provide valid settings.ini, path to it, and referenced files
+// x unity provide isolated copy of usr operators
+//      - if that doesnt work...are they someone using the same operator registry??
+// x fix mem mutex guards
+// x test injections
+// - unity to provide time base fn
+// - visualize objects in unity in real-time!
+// - figure out if possible to inject objects by compiling text...if not...fuckin a man
+//   just write construction/injection stuff manually here in C++ until i get a better handle on it
+
+// - LATER: figure out how to unload the library
+//      - best option seems to be:  http://stackoverflow.com/questions/12936327/loading-and-unloading-shared-libraries-in-mac-osx
+//      - manual unloading seems to get nowhere. dlopen functionality is completely broken apparently and wont even register
+//        that a library is already loaded.
+//      - manually freeing until free returns -1 doenst work either. maybe the usr_operator lib needs to be manually liberated in the same way?
+//      - dlmopen doesnt seem to work on osx
+//      - tried LAZY and LOCAL open modes to no avail either
+//      - this might be the answer in the end: http://docstore.mik.ua/orelly/unix3/mac/ch05_03.htm
+//          implies osx doenst support unloading dylibs
+
+
+
+
+
+
+typedef uint64_t(__stdcall *time_base_callback_t)();
+
+int start(int argc, char **argv,
+          std::string settings_path,
+          time_base_callback_t time_base_callback
+) {
     Settings settings;
 
     // First try to load local config, otherwise user config, otherwise just
     // use default values
-    if (fileExists("settings.ini")) {
-        settings.load("settings.ini");
+    if (fileExists(settings_path.c_str())) { //"settings.ini")) {
+        settings.load(settings_path.c_str()); // "settings.ini");
     } else {
-        std::cout << "loading from home" << std::endl;
-        settings.load("~/.config/replicode/replicode.conf");
+//        std::cout << "loading from home" << std::endl;
+//        settings.load("~/.config/replicode/replicode.conf");
+        std::cout << "settings not found! " << "(" << settings_path << ")" << std::endl;
+        return -1;
     }
 
     r_comp::Image seed;
@@ -269,7 +307,7 @@ int main(int argc, char **argv)
 
     if (!r_exec::Init(settings.usr_operator_path.c_str(),
                       []() -> uint64_t {
-                         return duration_cast<microseconds>(steady_clock::now().time_since_epoch()).count();
+                          return duration_cast<microseconds>(steady_clock::now().time_since_epoch()).count();
                       },
                       settings.usr_class_path.c_str(),
                       &seed,
@@ -347,15 +385,17 @@ int main(int argc, char **argv)
     uint64_t starting_time = mem->start();
     debug("main") << "running for" << settings.run_time << "ms";
 //    std::this_thread::sleep_for(std::chrono::milliseconds(settings.run_time));
-//    Thread::Sleep(settings.run_time/2);
-    std::this_thread::sleep_for(std::chrono::milliseconds(settings.run_time/2));
-      test_many_injections(mem,
-      argc > 2 ? atoi(argv[2]) : 100, // sampling period in ms
-      argc > 3 ? atoi(argv[3]) : 600, // number of batches
-      argc > 4 ? atoi(argv[4]) : 66); // number of objects per batch
 
     std::this_thread::sleep_for(std::chrono::milliseconds(settings.run_time/2));
-      //Thread::Sleep(settings.run_time/2);
+
+//    Thread::Sleep(settings.run_time/2);
+    test_many_injections(mem,
+      argc > 2 ? atoi(argv[2]) : 100, // sampling period in ms
+      argc > 3 ? atoi(argv[3]) : 6, // number of batches
+      argc > 4 ? atoi(argv[4]) : 66); // number of objects per batch
+//      Thread::Sleep(settings.run_time/2);*/
+    std::this_thread::sleep_for(std::chrono::milliseconds(settings.run_time/2));
+
     debug("main") << "shutting rMem down...";
     mem->stop();
 
@@ -429,3 +469,105 @@ int main(int argc, char **argv)
 #endif
     return 0;
 }
+
+
+////////////////////////////////////////////////////////////////////
+// unity interface
+
+void LogInUnity(std::string message, bool error = false);
+
+void cout_callback(const char *ptr, std::streamsize count)
+{
+    std::string s(ptr, count);
+    LogInUnity(s, false);
+
+    // next step: queue up and send only when newlines are found
+}
+
+void cerr_callback(const char *ptr, std::streamsize count) {
+    std::string s(ptr, count);
+    LogInUnity(s, true);
+}
+
+
+// compiler fuckery
+#ifndef __has_declspec_attribute         // Optional of course.
+    #define __has_declspec_attribute(x) 0  // Compatibility with non-clang compilers.
+#endif
+
+#if __has_declspec_attribute(dllexport)
+    #define DLLEXPORT __declspec(dllexport)
+#else
+    #define DLLEXPORT
+#endif
+
+//#define DllExport   __declspec( dllexport )
+
+extern "C" DLLEXPORT void test(const char* settings_path,
+                               time_base_callback_t time_base_callback) {
+
+    // allocate a giant memory guard ?
+    char *moat = new char[1024*1024*128];
+    memset(moat, 0, 1024*1024*128*sizeof(char));
+    char stackmoat[1024];
+    memset(stackmoat, 0, 1024*sizeof(char));
+
+
+    LogInUnity("Start running test HHHHHHHHHHHHHHHHHHHH\n");
+
+    callbackstream<> redirect_cout(std::cout, cout_callback);
+    callbackstream<> redirect_cerr(std::cerr, cerr_callback);
+
+    std::cout << "TEST REDIRECT cout" << "\n";
+    std::cerr << "TEST REDIRECT cerr" << "\n";
+
+    std::string path_copy = std::string(settings_path);
+
+    start(0, 0, std::string(settings_path), time_base_callback);
+
+    LogInUnity("Done running test!!!\n");
+
+    LogInUnity("Stack moat<");
+    LogInUnity(stackmoat);
+    LogInUnity(">\n");
+    delete moat;
+}
+
+
+/////////////////////////////////////////////////////////////////////
+// debugging output
+// copied from http://answers.unity3d.com/questions/30620/how-to-debug-c-dll-code.html
+
+typedef void(__stdcall * LogCallback) (const char * str);
+LogCallback gDebugCallback, gDebugErrorCallback;
+
+extern "C" void DLLEXPORT RegisterCoutCallback(LogCallback callback)
+{
+    if (callback)
+    {
+        gDebugCallback = callback;
+    }
+}
+
+extern "C" void DLLEXPORT RegisterCerrCallback(LogCallback callback)
+{
+    if (callback)
+    {
+        gDebugErrorCallback = callback;
+    }
+}
+
+
+void LogInUnity(std::string message, bool error)
+{
+    if (gDebugCallback && !error)
+    {
+        gDebugCallback(message.c_str());
+    } else if (gDebugErrorCallback && error)
+    {
+        gDebugErrorCallback(message.c_str());
+    }
+
+}
+
+

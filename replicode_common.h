@@ -265,6 +265,14 @@ public:
         std::cout << (output ? " true" : " false");
         return *this;
     }
+    inline const DebugStream &operator<<(const std::error_code &code) const
+    {
+        std::cout << code;
+        return *this;
+    }
+
+
+
 };
 
 static inline const DebugStream debug(const std::string area)

@@ -346,16 +346,13 @@ int main(int argc, char **argv)
 
     uint64_t starting_time = mem->start();
     debug("main") << "running for" << settings.run_time << "ms";
-//    std::this_thread::sleep_for(std::chrono::milliseconds(settings.run_time));
-//    Thread::Sleep(settings.run_time/2);
-    std::this_thread::sleep_for(std::chrono::milliseconds(settings.run_time/2));
+    std::this_thread::sleep_for(std::chrono::milliseconds(settings.run_time));
+    /*Thread::Sleep(settings.run_time/2);
       test_many_injections(mem,
       argc > 2 ? atoi(argv[2]) : 100, // sampling period in ms
       argc > 3 ? atoi(argv[3]) : 600, // number of batches
       argc > 4 ? atoi(argv[4]) : 66); // number of objects per batch
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(settings.run_time/2));
-      //Thread::Sleep(settings.run_time/2);
+      Thread::Sleep(settings.run_time/2);*/
     debug("main") << "shutting rMem down...";
     mem->stop();
 

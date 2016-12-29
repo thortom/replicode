@@ -51,12 +51,14 @@ extern "C" {
     // CPP Programs //////////////////////////////////////////////////////////////////////////////
 
     uint16_t REPLICODE_EXPORT GetProgramCount();
-    void REPLICODE_EXPORT GetProgramName(char *pgm_name);
+//    void REPLICODE_EXPORT GetProgramName(char *pgm_name);
+    const char* REPLICODE_EXPORT GetProgramName(int idx);
 
     // Callbacks //////////////////////////////////////////////////////////////////////////////
 
     uint16_t REPLICODE_EXPORT GetCallbackCount();
-    void REPLICODE_EXPORT GetCallbackName(char *callback_name);
+//    void REPLICODE_EXPORT GetCallbackName(char *callback_name);
+    const char* REPLICODE_EXPORT GetCallbackName(int idx);
 }
 
 

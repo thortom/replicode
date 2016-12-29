@@ -49,6 +49,8 @@ set( MEMORYCHECK_COMMAND_OPTIONS "--trace-children=yes --leak-check=full" )
 
 if(UNIX)
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -std=c++11 -fPIC -g -Wlanguage-extension-token") # -fsanitize=address
+
+    # -fms-compatibility -- for dllexport -- DOESNT WORK YO. breaks everything
 endif()
 
 
@@ -70,6 +72,10 @@ add_subdirectory(r_comp)
 add_subdirectory(r_exec)
 add_subdirectory(usr_operators)
 add_subdirectory(tests)
+
+# unity integration dylib
+add_subdirectory(unity)
+
 
 add_sanitizers(r_code)
 add_sanitizers(r_comp)
@@ -96,10 +102,6 @@ target_link_libraries(replicode r_exec r_comp r_code dl pthread ${PLATFORM_LIBS}
 install(FILES replicode_common.h DESTINATION include)
 
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
-
-
-
-
 
 
 enable_testing()
