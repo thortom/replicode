@@ -230,7 +230,7 @@ void _Mem::store(Code *object)
 
 bool _Mem::load(std::vector<r_code::Code *> *objects, uint64_t stdin_oid, uint64_t stdout_oid, uint64_t self_oid)
 {
-    std::cout << "r_exec::_Mem::Get() = " << r_exec::_Mem::Get() << "\n";
+//    std::cout << "r_exec::_Mem::Get() = " << r_exec::_Mem::Get() << "\n";
 
     Utils::SetReferenceValues(base_period, float_tolerance, time_tolerance);
     // load root (always comes first).
@@ -241,7 +241,7 @@ bool _Mem::load(std::vector<r_code::Code *> *objects, uint64_t stdin_oid, uint64
 
     for (uint64_t i = 1; i < objects->size(); ++i) { // skip root as it has no initial views.
 
-        std::cout << "r_exec::_Mem::Get() = " << r_exec::_Mem::Get() << "\n";
+//        std::cout << "r_exec::_Mem::Get() = " << r_exec::_Mem::Get() << "\n";
 
         Code *object = (*objects)[i];
         store(object);
@@ -309,7 +309,7 @@ void _Mem::init_timings(uint64_t now) const   // called at the beginning of _Mem
         if (opcode == Opcodes::Fact || opcode == Opcodes::AntiFact) {
             uint64_t after = Utils::GetTimestamp<Code>(*o, FACT_AFTER);
             uint64_t before = Utils::GetTimestamp<Code>(*o, FACT_BEFORE);
-            (*o)->trace();
+//            (*o)->trace(); // was getting spammy with constant exec restarts
 
             if (after < Utils::MaxTime - now) {
                 Utils::SetIndirectTimestamp<Code>(*o, FACT_AFTER, after + now);

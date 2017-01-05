@@ -478,13 +478,13 @@ void Image::add_objects(r_code::list<P<r_code::Code> > &objects)
     r_code::list<P<r_code::Code> >::const_iterator o;
 
     for (o = objects.begin(); o != objects.end(); ++o) {
-        ::debug("Image") << "add_objects():" << "adding...";
+//        ::debug("Image") << "add_objects():" << "adding...";
         if (!(*o)->is_invalidated()) {
             add_object(*o);
         }
     }
 
-    ::debug("Image") << "add_objects():" << "build refs...";
+//    ::debug("Image") << "add_objects():" << "build refs...";
     build_references();
 }
 
@@ -603,10 +603,10 @@ void Image::build_references()
         sys_object = code_segment.objects[i];
         uintptr_t _object = sys_object->references[0];
         _object |= (uint64_t(sys_object->references[1]) << 32);
-        ::debug("Image") << "build_references():" << std::hex << sys_object << "->" << (void*)_object
-                         << "[" << sys_object->references[0] << ", " << sys_object->references[1]
-                         << (std::dec,"")
-                         << "\n";
+//        ::debug("Image") << "build_references():" << std::hex << sys_object << "->" << (void*)_object
+//                         << "[" << sys_object->references[0] << ", " << sys_object->references[1]
+//                         << (std::dec,"")
+//                         << "\n";
         object = (Code *)_object;
         sys_object->references.as_std()->clear();
         build_references(sys_object, object);

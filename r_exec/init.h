@@ -53,6 +53,8 @@ namespace r_exec
 
 // Time base; either Time::Get or network-aware synced time.
 extern REPLICODE_EXPORT uint64_t(*Now)();
+// for non-standard timebases, need to abstract the translation between time-base units and system time so threads can wake up at approximately the right local time
+extern REPLICODE_EXPORT void(*SleepUntil)(uint64_t target_time_microseconds);
 
 // Loaded once for all.
 // Results from the compilation of user.classes.replicode.

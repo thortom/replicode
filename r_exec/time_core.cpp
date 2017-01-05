@@ -53,7 +53,8 @@ void delegatedCoreWait(TimeJob *job)
     static const float smoothing_factor = 0.1;
 
     do {
-        std::this_thread::sleep_until(steady_clock::time_point(microseconds(job->target_time - last_lag)));
+//        std::this_thread::sleep_until(steady_clock::time_point(microseconds(job->target_time - last_lag)));
+        SleepUntil(job->target_time - last_lag);
 
         if (R_UNLIKELY(!job->is_alive())) {
             break;

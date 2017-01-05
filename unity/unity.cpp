@@ -66,6 +66,8 @@
 
 #include "callbackstream.h"         // for hooking std::cout
 
+#include "unity.h"                   // for unity context
+
 static bool fileExists(const char *fileName)
 {
     std::ifstream infile(fileName);
@@ -187,7 +189,9 @@ void test_many_injections(r_exec::_Mem *mem, uint64_t sampling_period_ms, uint64
         if (taken_ms > sampling_period_ms) {
             debug("test many injections") << "Good grief! I exceeded the sampling period!";
         } else {
-            std::this_thread::sleep_for(std::chrono::milliseconds(sampling_period_ms - taken_ms));
+            // TODO: fix this guy
+            std::this_thread::sleep_for
+                    (std::chrono::milliseconds(sampling_period_ms - taken_ms));
         }
     }
 }
@@ -261,8 +265,9 @@ void write_to_file(r_comp::Image *image, std::string &image_path, Decompiler *de
 //      - if that doesnt work...are they someone using the same operator registry??
 // x fix mem mutex guards
 // x test injections
-// - unity to provide time base fn
+// x unity to provide time base fn
 // - visualize objects in unity in real-time!
+//      - look at repliqode srcs to figure out how its done there
 // - figure out if possible to inject objects by compiling text...if not...fuckin a man
 //   just write construction/injection stuff manually here in C++ until i get a better handle on it
 
@@ -281,7 +286,6 @@ void write_to_file(r_comp::Image *image, std::string &image_path, Decompiler *de
 
 
 
-typedef uint64_t(__stdcall *time_base_callback_t)();
 
 int start(int argc, char **argv,
           std::string settings_path,
@@ -306,9 +310,10 @@ int start(int argc, char **argv,
     using namespace std::chrono;
 
     if (!r_exec::Init(settings.usr_operator_path.c_str(),
-                      []() -> uint64_t {
-                          return duration_cast<microseconds>(steady_clock::now().time_since_epoch()).count();
-                      },
+                      time_base_callback,
+//                      []() -> uint64_t {
+//                          return duration_cast<microseconds>(steady_clock::now().time_since_epoch()).count();
+//                      },
                       settings.usr_class_path.c_str(),
                       &seed,
                       &metadata)) {
@@ -383,17 +388,45 @@ int start(int argc, char **argv,
     }
 
     uint64_t starting_time = mem->start();
+
+    VisContext current;
+
+    current.m_mem = mem;
+    current.m_metadata = &metadata;
+    current.m_seed_image = &seed;
+//    ctx->settings =
+
+//    return ctx;
+
+
     debug("main") << "running for" << settings.run_time << "ms";
 //    std::this_thread::sleep_for(std::chrono::milliseconds(settings.run_time));
 
     std::this_thread::sleep_for(std::chrono::milliseconds(settings.run_time/2));
 
-//    Thread::Sleep(settings.run_time/2);
-    test_many_injections(mem,
-      argc > 2 ? atoi(argv[2]) : 100, // sampling period in ms
-      argc > 3 ? atoi(argv[3]) : 6, // number of batches
-      argc > 4 ? atoi(argv[4]) : 66); // number of objects per batch
-//      Thread::Sleep(settings.run_time/2);*/
+    if (false) {
+        debug("main") << "stop test 1";
+
+        for (int k = 0; k < 100; k++) {
+            debug("main") << "loop stop test " << k << "\n";
+            mem->stop();
+            debug("main") << "loop start test " << k << "\n";
+            mem->start();
+        }
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(settings.run_time / 2));
+        debug("main") << "stop test 2";
+
+        mem->stop();
+        mem->start();
+        std::this_thread::sleep_for(std::chrono::milliseconds(settings.run_time / 2));
+    }
+
+//    test_many_injections(mem,
+//      argc > 2 ? atoi(argv[2]) : 100, // sampling period in ms
+//      argc > 3 ? atoi(argv[3]) : 6, // number of batches
+//      argc > 4 ? atoi(argv[4]) : 66); // number of objects per batch
+
     std::this_thread::sleep_for(std::chrono::milliseconds(settings.run_time/2));
 
     debug("main") << "shutting rMem down...";
@@ -408,7 +441,7 @@ int start(int argc, char **argv,
         //probe.set();
         r_comp::Image *image = mem->get_objects();
         //probe.check();
-        image->object_names.symbols = image->object_names.symbols;
+        image->object_names.symbols = image->object_names.symbols; // the F?
 
         if (settings.write_objects) {
             debug("main") << "writing objects...";
@@ -474,6 +507,9 @@ int start(int argc, char **argv,
 ////////////////////////////////////////////////////////////////////
 // unity interface
 
+
+/////////////////////////////////////////////////////////////////////
+
 void LogInUnity(std::string message, bool error = false);
 
 void cout_callback(const char *ptr, std::streamsize count)
@@ -489,22 +525,80 @@ void cerr_callback(const char *ptr, std::streamsize count) {
     LogInUnity(s, true);
 }
 
+//////////////////////////////////////////////////////////////////////////
+// timebase fuckery
 
-// compiler fuckery
-#ifndef __has_declspec_attribute         // Optional of course.
-    #define __has_declspec_attribute(x) 0  // Compatibility with non-clang compilers.
-#endif
+//float last_fixedTime = 0;
 
-#if __has_declspec_attribute(dllexport)
-    #define DLLEXPORT __declspec(dllexport)
-#else
-    #define DLLEXPORT
-#endif
+uint64_t last_external_timebase = 0;
+extern "C" DLLEXPORT void update_external_timebase(uint64_t timebase)
+{
+    last_external_timebase = timebase;
+}
 
-//#define DllExport   __declspec( dllexport )
+uint64_t external_time_base_callback()
+{
+//    return (uint64_t)(last_fixedTime * 1e6);
+    return last_external_timebase;
+}
 
+// todo: move timebase logic inside execution context
+
+double external_timescale = 1.0f;
+uint64_t last_timebase_sample_time = 0;
+uint64_t flexible_timebase = 0;  // integrates microsecnds at the rate of external_timescale * delta_t
+//uint64_t last_flexible_time_base
+
+extern "C" DLLEXPORT void update_external_timescale(double timescale)
+{
+    external_timescale = timescale;
+}
+
+// aka flexible_now()
+uint64_t flexible_time_base_callback() {
+
+    using namespace std::chrono;
+    uint64_t now = duration_cast<microseconds>(steady_clock::now().time_since_epoch()).count();
+
+//    // hack: start it at something sane because it seems SOMEONE fucks up somewhere and uses another time reference
+//    if (flexible_timebase == 0)
+//        flexible_timebase = now;
+
+    uint64_t delta_t = now - last_timebase_sample_time;
+    last_timebase_sample_time = now;
+
+    flexible_timebase += delta_t * external_timescale;
+    return flexible_timebase;
+//    return  duration_cast<microseconds>(steady_clock::now().time_since_epoch()).count();
+}
+
+// sets 0 local time
+void flexible_timebase_init()
+{
+    using namespace std::chrono;
+    last_timebase_sample_time = duration_cast<microseconds>(steady_clock::now().time_since_epoch()).count();
+    flexible_timebase = 0;
+}
+
+void flexible_timebase_sleep_until(uint64_t target_time_microseconds)
+{
+    using namespace std::chrono;
+
+    // translate target time from now until
+    uint64_t now = flexible_time_base_callback();
+    uint64_t base_clock_target_time = (target_time_microseconds - now)/external_timescale;
+
+    std::this_thread::sleep_for(microseconds(base_clock_target_time));
+    //std::this_thread::sleep_until(steady_clock::time_point(microseconds()));
+
+}
+
+
+/////////////////////////////////////////////////////////////////////////
+// running the engine
+// TODO: cleanup extra args
 extern "C" DLLEXPORT void test(const char* settings_path,
-                               time_base_callback_t time_base_callback) {
+                               time_base_callback_t ___time_base_callback) {
 
     // allocate a giant memory guard ?
     char *moat = new char[1024*1024*128];
@@ -512,6 +606,13 @@ extern "C" DLLEXPORT void test(const char* settings_path,
     char stackmoat[1024];
     memset(stackmoat, 0, 1024*sizeof(char));
 
+    using namespace std::chrono;
+
+    // HACK: init here
+    // TODO: move to actual Init, add as parameter
+    r_exec::SleepUntil = flexible_timebase_sleep_until;
+
+    flexible_timebase_init();
 
     LogInUnity("Start running test HHHHHHHHHHHHHHHHHHHH\n");
 
@@ -521,24 +622,109 @@ extern "C" DLLEXPORT void test(const char* settings_path,
     std::cout << "TEST REDIRECT cout" << "\n";
     std::cerr << "TEST REDIRECT cerr" << "\n";
 
+
+//    std::cout << "tbc: " << duration_cast<microseconds>(steady_clock::now().time_since_epoch()).count()
+//              << ", " << last_external_timebase << "\n";
+//    std::cout << "tbc: " << duration_cast<microseconds>(steady_clock::now().time_since_epoch()).count()
+//              << ", " << last_external_timebase << "\n";
+
+//    std::cout << "timebase test:" << ___time_base_callback() << "\n";
+//    std::cout << "timebase test:" << ___time_base_callback() << "\n";
+//    std::cout << "timebase test:" << ___time_base_callback() << "\n";
+
+    std::cout << "flexible timebase test:" << flexible_time_base_callback() << "\n";
+    std::cout << "flexible timebase test:" << flexible_time_base_callback() << "\n";
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+    std::cout << "flexible timebase test:" << flexible_time_base_callback() << "\n";
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+    std::cout << "flexible timebase test:" << flexible_time_base_callback() << "\n";
+
     std::string path_copy = std::string(settings_path);
 
-    start(0, 0, std::string(settings_path), time_base_callback);
+
+    std::cout << "flexible timebase test:" << flexible_time_base_callback() << "\n";
+    std::cout << "flexible timebase test:" << flexible_time_base_callback() << "\n";
+
+    start(0, 0, std::string(settings_path), flexible_time_base_callback);
+
+//    std::cout << "tbc: " << duration_cast<microseconds>(steady_clock::now().time_since_epoch()).count()
+//              << ", " << last_external_timebase << "\n";
+//    std::cout << "tbc: " << duration_cast<microseconds>(steady_clock::now().time_since_epoch()).count()
+//              << ", " << last_external_timebase << "\n";
+
+    std::cout << "flexible timebase test:" << flexible_time_base_callback() << "\n";
+    std::cout << "flexible timebase test:" << flexible_time_base_callback() << "\n";
+    std::cout << "flexible timebase test:" << flexible_time_base_callback() << "\n";
+    std::cout << "flexible timebase test:" << flexible_time_base_callback() << "\n";
 
     LogInUnity("Done running test!!!\n");
+//    std::cout << "timebase test:" << ___time_base_callback() << "\n";
 
     LogInUnity("Stack moat<");
     LogInUnity(stackmoat);
     LogInUnity(">\n");
+
+
+//    std::cout << "timebase test:" << ___time_base_callback() << "\n";
+
     delete moat;
 }
+
+
+/////////////////////////////////////////////////////////////////////
+// nicer unity interface
+
+callbackstream<> redirect_cout(std::cout, cout_callback);
+callbackstream<> redirect_cerr(std::cerr, cerr_callback);
+
+ExecutionContext *g_default_context = NULL;
+extern "C" DLLEXPORT int init(const char* settings_path) {
+
+    std::cout << "> init() ---------------------------------------- " << "\n";
+
+    std::cout << "TEST REDIRECT cout" << "\n";
+    std::cerr << "TEST REDIRECT cerr" << "\n";
+
+    if (g_default_context != NULL)
+    {
+        std::cerr << "g_default_context already exists!...reinit not supported yet!\n";
+    }
+    g_default_context = new ExecutionContext();
+
+    int res = g_default_context->init(settings_path, flexible_time_base_callback);
+    if (0 != res)
+    {
+        delete g_default_context;
+    }
+    std::cout << "< init() ---------------------------------------- " << "\n";
+
+    return res;
+}
+
+extern "C" DLLEXPORT uint64_t start() {
+    if (g_default_context == NULL)
+    {
+        std::cerr << "g_default_context is NULL!!\n";
+        return 0;
+    }
+    return g_default_context->start();
+}
+
+
+// next step:
+// x double check stream redirects work as expected before proceeding
+// - start method
+// - stop method
+// - replace/rewire vis context
 
 
 /////////////////////////////////////////////////////////////////////
 // debugging output
 // copied from http://answers.unity3d.com/questions/30620/how-to-debug-c-dll-code.html
 
-typedef void(__stdcall * LogCallback) (const char * str);
+//typedef void(/*__stdcall*/ * LogCallback) (const char * str);
 LogCallback gDebugCallback, gDebugErrorCallback;
 
 extern "C" void DLLEXPORT RegisterCoutCallback(LogCallback callback)
@@ -557,7 +743,6 @@ extern "C" void DLLEXPORT RegisterCerrCallback(LogCallback callback)
     }
 }
 
-
 void LogInUnity(std::string message, bool error)
 {
     if (gDebugCallback && !error)
@@ -566,8 +751,190 @@ void LogInUnity(std::string message, bool error)
     } else if (gDebugErrorCallback && error)
     {
         gDebugErrorCallback(message.c_str());
+    } else if (!gDebugCallback && !error)
+    {
+        printf("%s", message.c_str());
+    } else if (!gDebugErrorCallback && error)
+    {
+        fprintf(stderr, "%s", message.c_str());
     }
 
 }
 
 
+////////////////////////////////////////////////////////////////////////////////////////
+// ExecutionContext impl
+
+// temporary hack until i absorb timebase logic inside EC
+int ExecutionContext::init(std::string settings_path)
+{
+    // TODO: move to actual Init, add as parameter
+    r_exec::SleepUntil = flexible_timebase_sleep_until;
+    flexible_timebase_init();
+
+    return init(settings_path, flexible_time_base_callback);
+}
+
+
+int ExecutionContext::init(std::string settings_path, time_base_callback_t tcb)
+{
+    time_base_callback = tcb;
+
+    if (fileExists(settings_path.c_str())) { //"settings.ini")) {
+        settings.load(settings_path.c_str()); // "settings.ini");
+    } else {
+//        std::cout << "loading from home" << std::endl;
+//        settings.load("~/.config/replicode/replicode.conf");
+        std::cout << "settings not found! " << "(" << settings_path << ")" << std::endl;
+        return -1;
+    }
+
+
+    debug("main") << "Initializing with user operator library and user class code...";
+    using namespace std::chrono;
+
+    if (!r_exec::Init(settings.usr_operator_path.c_str(),
+                      time_base_callback,
+//                      []() -> uint64_t {
+//                          return duration_cast<microseconds>(steady_clock::now().time_since_epoch()).count();
+//                      },
+                      settings.usr_class_path.c_str(),
+                      &seed,
+                      &metadata)) {
+        return 2;
+    }
+
+
+    srand(r_exec::Now());
+    debug("main") << "compiling source...";
+    std::string error;
+
+    if (!r_exec::Compile(settings.source_file_name.c_str(), error, &seed, &metadata, false)) {
+        std::cerr << " <- " << error << std::endl;
+        return 3;
+    }
+
+    debug("main") << "source compiled!";
+#if defined(WIN32) || defined(WIN64)
+    r_exec::PipeOStream::Open(settings.debug_windows);
+#endif
+//        Decompiler decompiler;
+    decompiler.init(&metadata);
+//        r_exec::_Mem *mem;
+
+    if (settings.get_objects) {
+        mem = new r_exec::Mem<r_exec::LObject, r_exec::MemStatic>();
+    } else {
+        mem = new r_exec::Mem<r_exec::LObject, r_exec::MemVolatile>();
+    }
+
+//    r_code::vector<r_code::Code *> ram_objects;
+    seed.get_objects(mem, ram_objects);
+    mem->metadata = &metadata;
+    mem->init(settings.base_period,
+              settings.reduction_core_count,
+              settings.time_core_count,
+              settings.mdl_inertia_sr_thr,
+              settings.mdl_inertia_cnt_thr,
+              settings.tpx_dsr_thr,
+              settings.min_sim_time_horizon,
+              settings.max_sim_time_horizon,
+              settings.sim_time_horizon,
+              settings.tpx_time_horizon,
+              settings.perf_sampling_period,
+              settings.float_tolerance,
+              settings.time_tolerance,
+              settings.primary_thz,
+              settings.secondary_thz,
+              settings.debug,
+              settings.ntf_mk_resilience,
+              settings.goal_pred_success_resilience,
+              settings.probe_level,
+              settings.trace_levels);
+    uint64_t stdin_oid;
+    std::string stdin_symbol("stdin");
+    uint64_t stdout_oid;
+    std::string stdout_symbol("stdout");
+    uint64_t self_oid;
+    std::string self_symbol("self");
+    std::unordered_map<uintptr_t, std::string>::const_iterator n;
+
+    for (const auto symbol : seed.object_names.symbols) {
+        if (symbol.second == stdin_symbol) {
+            stdin_oid = symbol.first;
+        } else if (symbol.second == stdout_symbol) {
+            stdout_oid = symbol.first;
+        } else if (symbol.second == self_symbol) {
+            self_oid = symbol.first;
+        }
+    }
+
+    if (!mem->load(ram_objects.as_std(), stdin_oid, stdout_oid, self_oid)) {
+        return 4;
+    }
+
+    return 0;
+}
+
+void ExecutionContext::dump_memory(std::string decompiled_output_path /*= ""*/)
+{
+    if (settings.get_objects) {
+        //TimeProbe probe;
+        //probe.set();
+        r_comp::Image *image = mem->get_objects();
+        //probe.check();
+        image->object_names.symbols = image->object_names.symbols; // the F?
+
+        if (settings.write_objects) {
+            debug("main") << "writing objects...";
+            write_to_file(image, settings.objects_path, settings.test_objects ? &decompiler : nullptr, last_starting_time);
+        }
+
+        if (settings.decompile_objects && (!settings.write_objects || !settings.test_objects)) {
+            debug("main") << "decompiling objects...";
+            if (settings.decompile_to_file) { // argv[2] is a file to redirect the decompiled code to.
+                std::ofstream outfile;
+                outfile.open(settings.decompilation_file_path.c_str(), std::ios_base::trunc);
+                std::streambuf *coutbuf = std::cout.rdbuf(outfile.rdbuf());
+                decompile(decompiler, image, last_starting_time, settings.ignore_named_objects);
+                std::cout.rdbuf(coutbuf);
+                outfile.close();
+            } else {
+                decompile(decompiler, image, last_starting_time, settings.ignore_named_objects);
+            }
+        }
+
+        delete image;
+        //std::cout<<"get_image(): "<<probe.us()<<"us"<<std::endl;
+    }
+
+    if (settings.get_models) {
+        //TimeProbe probe;
+        //probe.set();
+        r_comp::Image *image = mem->get_models();
+        //probe.check();
+        image->object_names.symbols = image->object_names.symbols;
+
+        if (settings.write_models) {
+            debug("main") << "writing models...";
+            write_to_file(image, settings.models_path, settings.test_models ? &decompiler : nullptr, last_starting_time);
+        }
+
+        if (settings.decompile_models && (!settings.write_models || !settings.test_models)) {
+            debug("main") << "decompiling models...";
+            if (decompiled_output_path.length() > 0) { // argv[2] is a file to redirect the decompiled code to.
+                std::ofstream outfile;
+                outfile.open(decompiled_output_path, std::ios_base::trunc);
+                std::streambuf *coutbuf = std::cout.rdbuf(outfile.rdbuf());
+                decompile(decompiler, image, last_starting_time, settings.ignore_named_models);
+                std::cout.rdbuf(coutbuf);
+                outfile.close();
+            } else {
+                decompile(decompiler, image, last_starting_time, settings.ignore_named_models);
+            }
+        }
+
+        delete image;
+        //std::cout<<"get_models(): "<<probe.us()<<"us"<<std::endl;
+    }
+}

@@ -105,7 +105,7 @@ public:
 
     r_code::View *get_view(r_code::Code *group, bool lock); // returns the found view if any, NULL otherwise.
 
-    void kill();
+    void kill() { debug("r_exec::Object") << "kill() called!!!! wtf!!!\n"; } // DJM: NB: function wasnt defined anywhere and no one cared until SWIG came along
 
     class Hash
     {
