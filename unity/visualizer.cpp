@@ -3,38 +3,35 @@
 #include <r_comp/decompiler.h>
 #include <sstream>
 
-typedef void(__stdcall * VisualizerAddNodeCallback) (uint32_t oid, const char* _group, const char* _type, const char* _name, const char* _src);
-typedef void(__stdcall * VisualizerAddEdgeCallback) (const char* src, const char* target, bool is_view);
+
+//VisContext* VisContext::current = NULL;
 
 
+void ExecutionContext::visualize(VisualizerAddNodeCallback ancb, VisualizerAddEdgeCallback aecb) {
 
-VisContext* VisContext::current = NULL;
+//    if (ctx == NULL)
+//    {
+//        ::debug("do_vis_pop") << "vis ctx was null\n";
+//        return;
+//    }
+    ExecutionContext *ctx = this;
 
+    ctx->mem->stop();
+    ::debug("EC::visualize") << "stopped mem";
 
-void do_visualizer_populate(VisContext *ctx, VisualizerAddNodeCallback ancb, VisualizerAddEdgeCallback aecb) {
-
-    if (ctx == NULL)
-    {
-        ::debug("do_vis_pop") << "vis ctx was null\n";
-        return;
-    }
-
-    ctx->m_mem->stop();
-    ::debug("do_vis_pop") << "stopped mem";
-
-    r_comp::Image* image = ctx->m_mem->get_objects();
+    r_comp::Image* image = ctx->mem->get_objects();
 
     // wrinkle: this seems needed to copy symbols from the original (init?) image
 //    // Ensure that we get proper names
-    image->object_names.symbols = ctx->m_seed_image->object_names.symbols;
+    image->object_names.symbols = ctx->seed.object_names.symbols;
 
 
     r_comp::Decompiler decompiler;
-    decompiler.init(ctx->m_metadata);
+    decompiler.init(&ctx->metadata);
 
-    ::debug("do_vis_pop") << "m_mem:        " << (std::hex, (void*)ctx->m_mem) << (std::dec, "");
-    ::debug("do_vis_pop") << "m_metadata:   " << (std::hex, (void*)ctx->m_metadata) << (std::dec, "");
-    ::debug("do_vis_pop") << "m_seed_image: " << (std::hex, (void*)ctx->m_seed_image) << (std::dec, "");
+    ::debug("do_vis_pop") << "m_mem:        " << (std::hex, (void*)ctx->mem) << (std::dec, "");
+    ::debug("do_vis_pop") << "m_metadata:   " << (std::hex, (void*)&ctx->metadata) << (std::dec, "");
+    ::debug("do_vis_pop") << "m_seed_image: " << (std::hex, (void*)&ctx->seed) << (std::dec, "");
     ::debug("do_vis_pop") << "image:        " << (std::hex, (void*)image) << (std::dec, "");
 
     uint64_t objectCount = decompiler.decompile_references(image);
@@ -46,7 +43,7 @@ void do_visualizer_populate(VisContext *ctx, VisualizerAddNodeCallback ancb, Vis
         decompiler.decompile_object(i, &source, 0);
         uint32_t oid = image->code_segment.objects[i]->oid;
         std::string node_name = decompiler.get_object_name(i);
-        std::string type = ctx->m_metadata->classes_by_opcodes[image->code_segment.objects[i]->code[0].asOpcode()].str_opcode;
+        std::string type = ctx->metadata.classes_by_opcodes[image->code_segment.objects[i]->code[0].asOpcode()].str_opcode;
         std::string group = ""; // client can fill this?
 
 //        ::debug("do_vis_pop") << "obj:" << oid << "," << group << "," << type << "," << node_name << ":" << source.str() << "\n";
@@ -55,15 +52,15 @@ void do_visualizer_populate(VisContext *ctx, VisualizerAddNodeCallback ancb, Vis
 
     }
 
-    ctx->m_mem->start(); // TODO: could restart after image gen?
-    ::debug("do_vis_pop") << "restarted mem";
+    ctx->mem->start(); // TODO: could restart after image gen?
+    ::debug("EC::visualize") << "restarted mem";
 
 }
 
-extern "C" void DLLEXPORT visualizer_populate(VisualizerAddNodeCallback ancb, VisualizerAddEdgeCallback aecb)
-{
-    do_visualizer_populate(VisContext::current, ancb, aecb);
-}
+//extern "C" void DLLEXPORT visualizer_populate(VisualizerAddNodeCallback ancb, VisualizerAddEdgeCallback aecb)
+//{
+//    do_visualizer_populate(VisContext::current, ancb, aecb);
+//}
 
 
 

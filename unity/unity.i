@@ -54,6 +54,9 @@
 
 %cs_callback(LogCallback, Native.StringCallback)
 
+%cs_callback(VisualizerAddNodeCallback, Native.VisualizerAddNodeCallback)
+%cs_callback(VisualizerAddEdgeCallback, Native.VisualizerAddEdgeCallback)
+
 %typemap(imtype) const char * "string"
 //%typemap(imtype) std::string "string"
 

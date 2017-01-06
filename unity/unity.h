@@ -46,31 +46,35 @@ extern "C" void DLLEXPORT RegisterCerrCallback(LogCallback callback);
 //    };
 //}
 
-class VisContext
-{
-
-
-public:
-    VisContext() : m_mem(NULL), m_seed_image(NULL), m_metadata(NULL)
-    {
-        current = this;
-    }
-
-    ~VisContext()
-    {
-        current = NULL;
-    }
-
-    r_exec::_Mem *m_mem;
-    r_comp::Image *m_seed_image;
-    r_comp::Metadata *m_metadata;
-
-    static VisContext *current;
-
-};
+//class VisContext
+//{
+//
+//
+//public:
+//    VisContext() : m_mem(NULL), m_seed_image(NULL), m_metadata(NULL)
+//    {
+//        current = this;
+//    }
+//
+//    ~VisContext()
+//    {
+//        current = NULL;
+//    }
+//
+//    r_exec::_Mem *m_mem;
+//    r_comp::Image *m_seed_image;
+//    r_comp::Metadata *m_metadata;
+//
+//    static VisContext *current;
+//
+//};
 
 
 typedef uint64_t (/*__stdcall*/ *time_base_callback_t)();
+
+typedef void(/*__stdcall*/ * VisualizerAddNodeCallback) (uint32_t oid, const char* _group, const char* _type, const char* _name, const char* _src);
+typedef void(/*__stdcall*/ * VisualizerAddEdgeCallback) (const char* src, const char* target, bool is_view);
+
 
 #include "settings.h"
 class ExecutionContext
@@ -101,9 +105,28 @@ public:
     ~ExecutionContext()
     {
         if (mem != NULL) {
+//            if (r_exec::_Mem::RUNNING == mem->check_state())
+//            {
+//                mem->stop();
+//            }
             delete mem;
             mem = NULL;
         }
+    }
+
+    // hack: avoid dealing w/ swig and just put this here
+    typedef enum {
+        NOT_STARTED = 0,
+        RUNNING = 1,
+        STOPPED = 2
+    } State;
+
+
+    // TODO: a bit hacky, probably want to have another state to indicate 'not initialized'
+    State state()
+    {
+        if (mem == NULL) return NOT_STARTED;
+        return (State)(int)mem->check_state();
     }
 
     uint64_t start()
@@ -122,6 +145,7 @@ public:
 
     void dump_memory(std::string decompiled_output_path = "");
 
+    void visualize(VisualizerAddNodeCallback ancb, VisualizerAddEdgeCallback aecb);
 
     ///////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////
@@ -134,7 +158,9 @@ public:
 
     // injection helpers
 
-    void inject_vec3()
+    void inject_mk_val_vec3(uint32_t object_id, uint32_t attribute_id,
+                            float x, float y, float z);
+
 
 
 };

@@ -76,39 +76,11 @@ static bool fileExists(const char *fileName)
 
 //#define DECOMPILE_ONE_BY_ONE
 
-using namespace r_comp;
+// TODO: cleanup and remove injection test function from here once unity side works
 
-r_exec::View *build_view(uint64_t time, Code* rstdin)   // this is application dependent WRT view->sync.
-{
-    r_exec::View *view = new r_exec::View();
-    const uint64_t arity = VIEW_ARITY; // reminder: opcode not included in the arity.
-//    uint16_t write_index = 0;
-    uint16_t extent_index = arity + 1;
-    view->code(VIEW_OPCODE) = Atom::SSet(r_exec::View::ViewOpcode, arity);
-    view->code(VIEW_SYNC) = Atom::Float(View::SYNC_ONCE); // sync on front.
-    view->code(VIEW_IJT) = Atom::IPointer(extent_index); // iptr to injection time.
-    view->code(VIEW_SLN) = Atom::Float(1.0); // sln.
-    view->code(VIEW_RES) = Atom::Float(1); // res is set to 1 upr of the destination group.
-    view->code(VIEW_HOST) = Atom::RPointer(0); // stdin/stdout is the only reference.
-    view->code(VIEW_ORG) = Atom::Nil(); // org.
-    Utils::SetTimestamp(&view->code(extent_index), time);
-    view->references[0] = rstdin;
-    return view;
-}
+r_exec::View *build_view(uint64_t time, Code* rstdin);
 
-Code *make_object(r_exec::_Mem *mem, Code* rstdin, double i)
-{
-    Code *object = new r_exec::LObject(mem);
-    //object->code(0)=Atom::Marker(r_exec::GetOpcode("mk.val"),4); // Caveat: arity does not include the opcode.
-    object->code(0) = Atom::Marker(r_exec::Opcodes::MkVal, 4); // Caveat: arity does not include the opcode.
-    object->code(1) = Atom::RPointer(0);
-    object->code(2) = Atom::RPointer(1);
-    object->code(3) = Atom::Float(i);
-    object->code(4) = Atom::Float(1); // psln_thr.
-    object->set_reference(0, rstdin);
-    object->set_reference(1, rstdin);
-    return object;
-}
+Code *make_object(r_exec::_Mem *mem, Code* rstdin, double i);
 
 void test_injection(r_exec::_Mem *mem, double n)
 {
@@ -196,7 +168,7 @@ void test_many_injections(r_exec::_Mem *mem, uint64_t sampling_period_ms, uint64
     }
 }
 
-void decompile(Decompiler &decompiler, r_comp::Image *image, uint64_t time_offset, bool ignore_named_objects)
+void decompile(r_comp::Decompiler &decompiler, r_comp::Image *image, uint64_t time_offset, bool ignore_named_objects)
 {
 #ifdef DECOMPILE_ONE_BY_ONE
     uint64_t object_count = decompiler.decompile_references(image);
@@ -231,7 +203,7 @@ void decompile(Decompiler &decompiler, r_comp::Image *image, uint64_t time_offse
 #endif
 }
 
-void write_to_file(r_comp::Image *image, std::string &image_path, Decompiler *decompiler, uint64_t time_offset)
+void write_to_file(r_comp::Image *image, std::string &image_path, r_comp::Decompiler *decompiler, uint64_t time_offset)
 {
     std::ofstream output(image_path.c_str(), std::ios::binary | std::ios::out);
     r_code::Image<r_code::ImageImpl> *i = image->serialize<r_code::Image<r_code::ImageImpl> >();
@@ -332,7 +304,7 @@ int start(int argc, char **argv,
 #if defined(WIN32) || defined(WIN64)
     r_exec::PipeOStream::Open(settings.debug_windows);
 #endif
-    Decompiler decompiler;
+    r_comp::Decompiler decompiler;
     decompiler.init(&metadata);
     r_exec::_Mem *mem;
 
@@ -389,11 +361,11 @@ int start(int argc, char **argv,
 
     uint64_t starting_time = mem->start();
 
-    VisContext current;
-
-    current.m_mem = mem;
-    current.m_metadata = &metadata;
-    current.m_seed_image = &seed;
+//    VisContext current;
+//
+//    current.m_mem = mem;
+//    current.m_metadata = &metadata;
+//    current.m_seed_image = &seed;
 //    ctx->settings =
 
 //    return ctx;
@@ -891,7 +863,7 @@ void ExecutionContext::dump_memory(std::string decompiled_output_path /*= ""*/)
         }
 
         if (settings.decompile_objects && (!settings.write_objects || !settings.test_objects)) {
-            debug("main") << "decompiling objects...";
+            debug("main") << "decompiling objects..." << "(time_offset = last_starting_time = " << DebugStream::timestamp(last_starting_time) << ")" << "\n";
             if (settings.decompile_to_file) { // argv[2] is a file to redirect the decompiled code to.
                 std::ofstream outfile;
                 outfile.open(settings.decompilation_file_path.c_str(), std::ios_base::trunc);

@@ -164,6 +164,8 @@ Code *_Mem::get_self() const
 _Mem::State _Mem::check_state()
 {
     State s;
+
+    // TODO: maybe retry in a loop instead of returning possibly inconsistent result when exception happens?
     try {
         std::lock_guard<std::mutex> guard(m_stateMutex);
 //        ::debug("_Mem::check_state()") << "locked stateMutex\n";
