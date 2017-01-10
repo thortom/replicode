@@ -653,9 +653,12 @@ void Image::build_references(SysObject *sys_object, Code *object)
 void Image::get_objects(Mem *mem, r_code::vector<Code *> &ram_objects)
 {
     debug("image") << "number of objects: " << code_segment.objects.size();
+    debug("image") << "ram_objects size: " << ram_objects.size() << ", " << ram_objects.as_std()->capacity();
 
     for (size_t i = 0; i < code_segment.objects.size(); ++i) {
         ram_objects[i] = mem->build_object(code_segment.objects[i]);
+        debug("image") << "ram_objects size: " << ram_objects.size() << ", " << ram_objects.as_std()->capacity();
+
     }
 
     unpack_objects(ram_objects);

@@ -36,6 +36,7 @@ void ExecutionContext::visualize(VisualizerAddNodeCallback ancb, VisualizerAddEd
 
     uint64_t objectCount = decompiler.decompile_references(image);
 
+
     for (size_t i = 0; i < objectCount; i++) {
 
         std::ostringstream source;

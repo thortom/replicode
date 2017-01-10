@@ -98,6 +98,7 @@ public:
 
     void trace();
 
+    static void reset_library_hack() { LastOID = 0; } // TODO: think of a better hack
 private:
     static uint32_t LastOID;
 };

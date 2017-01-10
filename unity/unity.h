@@ -90,10 +90,14 @@ protected:
     r_comp::Decompiler decompiler;
 
     uint64_t last_starting_time;
-public:
-    ExecutionContext() : mem(NULL), time_base_callback(NULL), last_starting_time(0)
-    {
 
+    uint32_t last_unregistered_oid;
+public:
+    ExecutionContext() : mem(NULL),
+                         time_base_callback(NULL),
+                         last_starting_time(0),
+                         last_unregistered_oid(UNDEFINED_OID-1)
+    {
 
     }
 
@@ -158,8 +162,28 @@ public:
 
     // injection helpers
 
+    uint64_t get_object_id(std::string name) {
+        for (auto symbol : seed.object_names.symbols)
+        {
+            if (symbol.second == name)
+            {
+                return symbol.first;
+            }
+        }
+        return UNDEFINED_OID;
+    }
+
+    uint64_t get_next_unregistered_oid()
+    {
+        return last_unregistered_oid--;
+    }
+
     void inject_mk_val_vec3(uint32_t object_id, uint32_t attribute_id,
                             float x, float y, float z);
+
+
+
+    Code* find_ram_object(uint32_t oid);
 
 
 

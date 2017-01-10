@@ -75,7 +75,7 @@ Code *make_object(r_exec::_Mem *mem, Code* rstdin, double i)
 void do_injection(r_exec::_Mem *mem, Code* object)
 {
     Code* rstdin = mem->get_stdin();
-    uint64_t t0 = r_exec::Now();
+//    uint64_t t0 = r_exec::Now();
     {
 //        Code* object = make_object(mem, rstdin, i);
         uint64_t now = r_exec::Now();
@@ -99,21 +99,49 @@ void do_injection(r_exec::_Mem *mem, Code* object)
 // public interface
 
 
-void get_code_mk_val_vec3(r_exec::_Mem *m,
-                          uint32_t object_id, uint32_t attribute_id,
+
+
+Code* get_code_mk_val_vec3(r_exec::_Mem *m,
+                          //uint32_t object_id, uint32_t attribute_id,
+                          Code* _object, Code* _attribute,
                           float x, float y, float z)
 {
 
-    // problem: how do i resolve oids to entities?
-    // -- how do i even get the oid of my seed entities in the first place??
-    // metadata->getObjectName(i)
-    // looks like the index should correspond to the ordering in the Mem::objects private member
-    // may need another method to access it, can get oid's out of those objects i think
-    // for seed objects, this->ram_objects should have the right correspondence? assuming oids have been assigned at load time??
-    // ...yes, confirmed
+    // X problem: how do i resolve oids to entities?
+    //      -- how do i even get the oid of my seed entities in the first place??
+    //      metadata->getObjectName(i)
+    //      looks like the index should correspond to the ordering in the Mem::objects private member
+    //      may need another method to access it, can get oid's out of those objects i think
+    //      for seed objects, this->ram_objects should have the right correspondence? assuming oids have been assigned at load time??
+    //      ...yes, confirmed
 
     // for tracking of entities injected later, will need another way...basically replicate the entity_map in the other project
     // injector will need to return oids or something (or add string name metadata?? for new things...if thats even allowed?)
+    uint16_t vec3_opcode = m->metadata->opcodes["vec3"];
+
+
+    Code *object = new r_exec::LObject(m);
+    object->code(0) = Atom::Marker(r_exec::Opcodes::MkVal, 4); // Caveat: arity does not include the opcode.
+    object->code(1) = Atom::RPointer(0);
+    object->code(2) = Atom::RPointer(1);
+    object->code(3) = Atom::IPointer(5); // points to the vector.
+    object->code(4) = Atom::Float(1); // psln_thr.
+    object->code(5) = Atom::Object(vec3_opcode /*r_comp::ClassRegister::GetOpcode("vec3")*/, 3); // Caveat: arity does not include the opcode.
+    object->code(6) = Atom::Float(x); //this->value[0]);
+    object->code(7) = Atom::Float(y); //this->value[1]);
+    object->code(8) = Atom::Float(z); //this->value[2]);
+//    object->set_reference(0, m->get_object(this->object, this->senderNodeID()));
+//    object->set_reference(1, m->get_object(this->attribute, this->senderNodeID()));
+
+    // need to retrieve actual objects (Code* ) from mem
+    object->set_reference(0, _object);
+    object->set_reference(1, _attribute);
+
+
+    // TODO: maybe need to manually hack the OID?
+    // yep. fuck. ok.
+
+    return object;
 
 
 /*
@@ -134,16 +162,75 @@ void get_code_mk_val_vec3(r_exec::_Mem *m,
 */
 }
 
+Code* ExecutionContext::find_ram_object(uint32_t oid)
+{
+//    ::debug("find_ram_objects") << "obj:" << (std::hex, obj) << (std::dec, "") << "\n";
+
+    // TODO: may be unnecessary, to search, if ram_object order always matches oid assignment
+
+   // for (auto obj : ram_objects)
+    ::debug("find_ram_objects") << "ram_objects:" << ram_objects.size();
+
+    if (oid < ram_objects.size())
+    {
+        Code *obj = ram_objects[oid];
+        ::debug("find_ram_objects") << "obj->get_oid():" << (std::hex, obj->get_oid()) << (std::dec, "");
+        return obj;
+
+    } else
+    {
+        ::debug("find_ram_objects") << "ERROR:" << "oid (" << oid << ") > ram_objects.size():" << ram_objects.size();
+        return NULL;
+    }
+
+//    for (uint64_t i = 0; i < ram_objects.size(); i++)
+//    {
+//        Code *obj = ram_objects[i];
+//        ::debug("find_ram_objects") << "obj:" << (std::hex, obj) << (std::dec, "");
+//        ::debug("find_ram_objects") << "obj->get_oid():" << (std::hex, obj->get_oid()) << (std::dec, "");
+//
+//        if (obj->get_oid() == oid)
+//        {
+//            return obj;
+//        }
+//    }
+//
+//    return NULL;
+}
+
 void ExecutionContext::inject_mk_val_vec3(uint32_t object_id, uint32_t attribute_id,
-                        float x, float y, float z) {
+                                          float x, float y, float z)
+{
+    ::debug("inject_mk_val_vec3") << "oid:" << object_id << ", attrid:" << attribute_id << "\n";
 
-    /*
+    Code *object = find_ram_object(object_id);
+    Code *attribute = find_ram_object(attribute_id);
 
-    this->metadata.getObjectName();
-    this->mem
-    // then
+    if (object == NULL || attribute == NULL) {
+        ::debug("inject_mk_val_vec3") << "object or attribute was null, aborting\n";
+        return;
+    }
 
-*/
+    Code *marker_object = get_code_mk_val_vec3(mem, object, attribute, x, y, z);
+
+    // SO ANNOYING -- cant set the fucking oid on this or it vanishes immediately (!!!)
+//    static int count = 0;
+//    marker_object->set_oid(get_next_unregistered_oid());
+//    marker_object->set_oid(10000 + (count++)); //get_next_unregistered_oid());
+
+    ::debug("inject_mk_val_vec3") << "marker obj oid" << marker_object->get_oid();
+    Code* rstdin = mem->get_stdin();
+
+    uint64_t now = r_exec::Now();
+    // Build a fact.
+    Code *fact = new r_exec::Fact(marker_object, now, now + 10000000, 1, 1);
+
+    // Build a default view for the fact.
+    r_exec::View *view = build_view(now, rstdin);
+
+    // Inject the view.
+    view->set_object(fact);
+    mem->inject(view);
 
 
 }

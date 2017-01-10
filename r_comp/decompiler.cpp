@@ -208,6 +208,7 @@ uint64_t Decompiler::decompile_references(r_comp::Image *image)
 
         object_names[i] = name;
         object_indices[name] = i;
+//        ::debug("decompile_refs") << "object name" << i << ":" << name;
     }
 
     closing_set = false;

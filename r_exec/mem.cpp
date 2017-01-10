@@ -529,6 +529,10 @@ void _Mem::inject_new_object(View *view)
     default:
         //t0=Now();
         bind(view);
+
+//        ::debug("inject_new_object") << "binding to view: "
+//                                             << view->object->code(0).asOpcode()
+//                                                 << "mk.val opcode=" << r_exec::Opcodes::MkVal;
         //t1=Now();
         host->inject_new_object(view);
         //t2=Now();

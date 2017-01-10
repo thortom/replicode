@@ -742,6 +742,8 @@ int ExecutionContext::init(std::string settings_path)
 {
     // TODO: move to actual Init, add as parameter
     r_exec::SleepUntil = flexible_timebase_sleep_until;
+
+    r_code::SysObject::reset_library_hack();
     flexible_timebase_init();
 
     return init(settings_path, flexible_time_base_callback);
