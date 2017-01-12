@@ -225,6 +225,7 @@ public:
     virtual uint64_t get_oid() const = 0;
     virtual void set_oid(uint64_t oid) = 0;
 
+    void set_code(uint16_t i, Atom a) { code(i) = a;} // convenience for C# interface
     virtual Atom &code(uint16_t i) = 0;
     virtual const Atom &code(uint16_t i) const = 0;
     virtual uint16_t code_size() const = 0;

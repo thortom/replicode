@@ -7,6 +7,15 @@
 //VisContext* VisContext::current = NULL;
 
 
+/*
+ * TODO: unfucking the visualization requires
+ *
+ * - resuming the executive without reinitializing the fact timings in the dumb way its currently done
+ * - i suppose i could just implement pause by locking the processing mutex?? seems dangerous though
+ *
+ *
+ */
+
 void ExecutionContext::visualize(VisualizerAddNodeCallback ancb, VisualizerAddEdgeCallback aecb) {
 
 //    if (ctx == NULL)
@@ -16,10 +25,15 @@ void ExecutionContext::visualize(VisualizerAddNodeCallback ancb, VisualizerAddEd
 //    }
     ExecutionContext *ctx = this;
 
-    ctx->mem->stop();
+    ctx->pause();
+//    ctx->mem->stop();
     ::debug("EC::visualize") << "stopped mem";
 
     r_comp::Image* image = ctx->mem->get_objects();
+
+    ctx->resume();
+    ::debug("EC::visualize") << "restarted mem";
+
 
     // wrinkle: this seems needed to copy symbols from the original (init?) image
 //    // Ensure that we get proper names
@@ -29,10 +43,10 @@ void ExecutionContext::visualize(VisualizerAddNodeCallback ancb, VisualizerAddEd
     r_comp::Decompiler decompiler;
     decompiler.init(&ctx->metadata);
 
-    ::debug("do_vis_pop") << "m_mem:        " << (std::hex, (void*)ctx->mem) << (std::dec, "");
-    ::debug("do_vis_pop") << "m_metadata:   " << (std::hex, (void*)&ctx->metadata) << (std::dec, "");
-    ::debug("do_vis_pop") << "m_seed_image: " << (std::hex, (void*)&ctx->seed) << (std::dec, "");
-    ::debug("do_vis_pop") << "image:        " << (std::hex, (void*)image) << (std::dec, "");
+//    ::debug("do_vis_pop") << "m_mem:        " << (std::hex, (void*)ctx->mem) << (std::dec, "");
+//    ::debug("do_vis_pop") << "m_metadata:   " << (std::hex, (void*)&ctx->metadata) << (std::dec, "");
+//    ::debug("do_vis_pop") << "m_seed_image: " << (std::hex, (void*)&ctx->seed) << (std::dec, "");
+//    ::debug("do_vis_pop") << "image:        " << (std::hex, (void*)image) << (std::dec, "");
 
     uint64_t objectCount = decompiler.decompile_references(image);
 
@@ -41,7 +55,7 @@ void ExecutionContext::visualize(VisualizerAddNodeCallback ancb, VisualizerAddEd
 
         std::ostringstream source;
         source.precision(2);
-        decompiler.decompile_object(i, &source, 0);
+        decompiler.decompile_object(i, &source, this->last_starting_time);
         uint32_t oid = image->code_segment.objects[i]->oid;
         std::string node_name = decompiler.get_object_name(i);
         std::string type = ctx->metadata.classes_by_opcodes[image->code_segment.objects[i]->code[0].asOpcode()].str_opcode;
@@ -53,8 +67,7 @@ void ExecutionContext::visualize(VisualizerAddNodeCallback ancb, VisualizerAddEd
 
     }
 
-    ctx->mem->start(); // TODO: could restart after image gen?
-    ::debug("EC::visualize") << "restarted mem";
+//    ctx->mem->start(); // TODO: could restart after image gen?
 
 }
 

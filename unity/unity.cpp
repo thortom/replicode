@@ -67,6 +67,7 @@
 #include "callbackstream.h"         // for hooking std::cout
 
 #include "unity.h"                   // for unity context
+#include "UnityMem.h"                // for eject override to implement device commands
 
 static bool fileExists(const char *fileName)
 {
@@ -521,9 +522,13 @@ uint64_t last_timebase_sample_time = 0;
 uint64_t flexible_timebase = 0;  // integrates microsecnds at the rate of external_timescale * delta_t
 //uint64_t last_flexible_time_base
 
+uint64_t flexible_time_base_callback();
+
 extern "C" DLLEXPORT void update_external_timescale(double timescale)
 {
+    flexible_time_base_callback(); // ensure integration accounts for time up to the adjustment at the old timescale
     external_timescale = timescale;
+    flexible_time_base_callback(); // ensure we track the new timescale (redundant up to time it takes to execute assignment above but left for clarity)
 }
 
 // aka flexible_now()
@@ -796,11 +801,13 @@ int ExecutionContext::init(std::string settings_path, time_base_callback_t tcb)
     decompiler.init(&metadata);
 //        r_exec::_Mem *mem;
 
-    if (settings.get_objects) {
-        mem = new r_exec::Mem<r_exec::LObject, r_exec::MemStatic>();
-    } else {
-        mem = new r_exec::Mem<r_exec::LObject, r_exec::MemVolatile>();
-    }
+
+    mem = new UnityMem();
+//    if (settings.get_objects) {
+//        mem = new r_exec::Mem<r_exec::LObject, r_exec::MemStatic>();
+//    } else {
+//        mem = new r_exec::Mem<r_exec::LObject, r_exec::MemVolatile>();
+//    }
 
 //    r_code::vector<r_code::Code *> ram_objects;
     seed.get_objects(mem, ram_objects);
@@ -911,4 +918,12 @@ void ExecutionContext::dump_memory(std::string decompiled_output_path /*= ""*/)
         delete image;
         //std::cout<<"get_models(): "<<probe.us()<<"us"<<std::endl;
     }
+}
+
+void ExecutionContext::RegisterCommandCallbacks(FireCommandCallback fcb,
+                              RotateToCommandCallback rtcb)
+{
+    // HACK: exploit assumption that we have a pointer to a unitymem
+    ((UnityMem*)mem)->fire_command_callback = fcb;
+    ((UnityMem*)mem)->rotate_to_command_callback = rtcb;
 }

@@ -4,7 +4,7 @@ set(unity_SRC
         visualizer.cpp
         callbackstream.cpp
         callbackstream.h
-        injection.cpp)
+        injection.cpp UnityMem.cpp UnityMem.h)
 #set(unity_HDR
 #        class.h
 #        compiler.h

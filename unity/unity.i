@@ -52,10 +52,26 @@
 ///////////////////////////////////////////////////////////
 // stuff that will be processed by swig
 
+// enable all wrapper classes to be extended to suck less by user code
+%typemap(csclassmodifiers) SWIGTYPE "public partial class"
+
+
 %cs_callback(LogCallback, Native.StringCallback)
 
 %cs_callback(VisualizerAddNodeCallback, Native.VisualizerAddNodeCallback)
 %cs_callback(VisualizerAddEdgeCallback, Native.VisualizerAddEdgeCallback)
+
+%cs_callback(FireCommandCallback, Native.CommandCallbacks.Fire)
+%cs_callback(RotateToCommandCallback, Native.CommandCallbacks.RotateTo)
+
+
+// unclear how to actually do this...guessi need to define a typemap also. ghey
+//%apply SWIGTYPE *DISOWN { Code* }; // can i apply to a return type??? ugh. doesnt seem to do shit
+//%apply SWIGTYPE *DISOWN { LObject* }; // can i apply to a return type??? ugh. doesnt seem to do shit
+//%apply SWIGTYPE *DISOWN { r_exec::LObject* }; // can i apply to a return type??? ugh. doesnt seem to do shit
+//%apply SWIGTYPE *DISOWN { r_code::LObject* }; // can i apply to a return type??? ugh. doesnt seem to do shit
+
+
 
 %typemap(imtype) const char * "string"
 //%typemap(imtype) std::string "string"
@@ -69,8 +85,6 @@
 
 %include "unity.h" // NB: must include this (with the typedefs referred to by any cs_callback defs) AFTER the cs_callback macro invocation
 
-
-
 %include "replicode_common.h"
 
 
@@ -83,10 +97,9 @@
 %rename(r_exec_LObject) r_exec::LObject;
 //%rename(r_code_LObject) r_code::LObject;
 
-//%include <stdint>
-//%include <stddef>
 %include "r_code.i"
 %include "r_exec.i"
+//%include "r_comp.i" -- dont seem to need this yet
 
 %template(the_LObject) r_exec::Object< r_code::LObject,r_exec::LObject >;
 

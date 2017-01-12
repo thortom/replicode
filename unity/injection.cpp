@@ -235,3 +235,31 @@ void ExecutionContext::inject_mk_val_vec3(uint32_t object_id, uint32_t attribute
 
 }
 
+
+void ExecutionContext::inject_fact_for_object(Code *object)
+{
+    ::debug("inject_object") << "received code";  //<< "oid:" << object_id << ", attrid:" << attribute_id << "\n";
+
+    object->trace();
+
+    // SO ANNOYING -- cant set the fucking oid on the object it vanishes immediately (!!!)
+
+//    ::debug("inject_mk_val_vec3") << "marker obj oid" << marker_object->get_oid();
+    Code* rstdin = mem->get_stdin();
+
+    uint64_t now = r_exec::Now();
+    // Build a fact.
+    Code *fact = new r_exec::Fact(object, now, now + 10000000, 1, 1);
+
+    // Build a default view for the fact.
+    r_exec::View *view = build_view(now, rstdin);
+
+    // Inject the view.
+    view->set_object(fact);
+    mem->inject(view);
+
+
+}
+
+
+

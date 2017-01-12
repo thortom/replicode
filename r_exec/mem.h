@@ -320,7 +320,7 @@ public:
     /// no cov at init time.
     bool load(std::vector<r_code::Code *> *objects, uint64_t stdin_oid, uint64_t stdout_oid, uint64_t self_oid);
     // return false on error.
-    uint64_t start(); // return the starting time.
+    uint64_t start(bool resuming = false); // return the starting time.
     void stop(); // after stop() the content is cleared and one has to call load() and start() again.
 
     // Internal core processing ////////////////////////////////////////////////////////////////

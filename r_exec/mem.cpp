@@ -326,7 +326,7 @@ void _Mem::init_timings(uint64_t now) const   // called at the beginning of _Mem
     }
 }
 
-uint64_t _Mem::start()
+uint64_t _Mem::start(bool resuming)
 {
     if (state != STOPPED && state != NOT_STARTED) {
         return 0;
@@ -336,16 +336,24 @@ uint64_t _Mem::start()
     std::vector<std::pair<View *, Group *> > initial_reduction_jobs;
     uint64_t i;
     uint64_t now = Now();
-    Utils::SetTimeReference(now);
-    ModelBase::Get()->set_thz(secondary_thz);
-    init_timings(now);
+
+    if (resuming)
+    {
+//        init_timings(-now + paused_since); // adjust fact timings to compensate for time while paused
+    } else
+    {
+        Utils::SetTimeReference(now);
+        ModelBase::Get()->set_thz(secondary_thz);
+        init_timings(now);
+    }
+
 
     for (i = 0; i < initial_groups.size(); ++i) {
         Group *g = initial_groups[i];
         bool c_active = g->get_c_act() > g->get_c_act_thr();
         bool c_salient = g->get_c_sln() > g->get_c_sln_thr();
         FOR_ALL_VIEWS_BEGIN(g, v)
-        Utils::SetIndirectTimestamp<View>(v->second, VIEW_IJT, now); // init injection time for the view.
+        if (!resuming) { Utils::SetIndirectTimestamp<View>(v->second, VIEW_IJT, now); } // init injection time for the view.
         FOR_ALL_VIEWS_END
 
         if (c_active) {
@@ -354,14 +362,16 @@ uint64_t _Mem::start()
             // build signaling jobs for active input-less overlays.
             for (v = g->input_less_ipgm_views.begin(); v != g->input_less_ipgm_views.end(); ++v) {
                 if (v->second->controller != nullptr && v->second->controller->is_activated()) {
-                    pushTimeJob(new InputLessPGMSignalingJob(v->second, now + Utils::GetTimestamp<Code>(v->second->object, IPGM_TSC)));
+                    pushTimeJob(new InputLessPGMSignalingJob(v->second,
+                                                             (resuming ? (0) : now) + Utils::GetTimestamp<Code>(v->second->object, IPGM_TSC)));
                 }
             }
 
             // build signaling jobs for active anti-pgm overlays.
             for (v = g->anti_ipgm_views.begin(); v != g->anti_ipgm_views.end(); ++v) {
                 if (v->second->controller != nullptr && v->second->controller->is_activated()) {
-                    pushTimeJob(new AntiPGMSignalingJob(v->second, now + Utils::GetTimestamp<Code>(v->second->object, IPGM_TSC)));
+                    pushTimeJob(new AntiPGMSignalingJob(v->second,
+                                                        (resuming ? (0) : now) + Utils::GetTimestamp<Code>(v->second->object, IPGM_TSC)));
                 }
             }
         }
