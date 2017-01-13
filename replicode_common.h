@@ -163,6 +163,18 @@ public:
 
 } // namespace core
 
+
+// simple wrapper for writing out pointer values more easily to debug streams
+class hex
+{
+public:
+    hex(void* ptr) : value((uint64_t)ptr) { }
+    hex(uint64_t v) : value(v) {}
+    uint64_t value;
+
+};
+
+
 static std::mutex s_debugSection;
 
 /// Thread safe debug output
@@ -268,6 +280,16 @@ public:
     inline const DebugStream &operator<<(const std::error_code &code) const
     {
         std::cout << code;
+        return *this;
+    }
+
+    inline const DebugStream &operator<<(const hex& hex_wrapper) const
+    {
+
+        std::hex(std::cout);
+        std::cout << hex_wrapper.value;
+        std::dec(std::cout);
+//        std::dec(*this);
         return *this;
     }
 

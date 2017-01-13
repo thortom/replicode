@@ -174,7 +174,7 @@ Code* ExecutionContext::find_ram_object(uint32_t oid)
     if (oid < ram_objects.size())
     {
         Code *obj = ram_objects[oid];
-        ::debug("find_ram_objects") << "obj->get_oid():" << (std::hex, obj->get_oid()) << (std::dec, "");
+        ::debug("find_ram_objects") << "obj->get_oid():" << hex(obj->get_oid());
         return obj;
 
     } else
@@ -261,5 +261,32 @@ void ExecutionContext::inject_fact_for_object(Code *object)
 
 }
 
+
+void ExecutionContext::inject_object(Code* object)
+{
+    ::debug("inject_object") << "received code";  //<< "oid:" << object_id << ", attrid:" << attribute_id << "\n";
+
+    object->trace();
+
+    Code* rstdin = mem->get_stdin();
+
+    uint64_t now = r_exec::Now();
+
+    r_exec::View *view = build_view(now, rstdin);
+
+    // Inject the view.
+    view->set_object(object);
+    mem->inject(view);
+
+}
+
+// TODO: it may be that cmd must appear in a reduction and doesnt trigger anything if just injected
+// then i can just inject a program that trivially reduces it
+// or, fancier, a program that matches any salient command and executes it
+// or maybe just a specific program with args i can pass??
+// ...too many choices!!s
+
+// TODO: helpful for rev engineering replicode: add button to visualizer that
+// causes any named object to be traced
 
 

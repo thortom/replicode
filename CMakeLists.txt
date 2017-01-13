@@ -48,7 +48,7 @@ set( MEMORYCHECK_COMMAND_OPTIONS "--trace-children=yes --leak-check=full" )
 
 
 if(UNIX)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -std=c++11 -fPIC -g -Wlanguage-extension-token") # -fsanitize=address
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -std=c++11 -fPIC -g -Wlanguage-extension-token -Wno-overloaded-virtual") # -fsanitize=address
 
     # -fms-compatibility -- for dllexport -- DOESNT WORK YO. breaks everything
 endif()

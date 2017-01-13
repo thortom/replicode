@@ -81,6 +81,10 @@ public:
 
     int init(std::string settings_path, time_base_callback_t tcb);
 
+    uint64_t Now()
+    {
+        return r_exec::Now();
+    }
 
     ~ExecutionContext()
     {
@@ -111,7 +115,7 @@ public:
 
     uint64_t start()
     {
-        debug("EC::start") << "this=" <<(std::hex,(void*)this) << "mem=" << (void*)mem << (std::dec,"") << "\n";
+        debug("EC::start") << "this=" << hex((void*)this) << "mem=" << hex((void*)mem);
         uint64_t starting_time = mem->start(false);
         last_starting_time = starting_time;
         return starting_time;
@@ -128,7 +132,7 @@ public:
 
     uint64_t resume()
     {
-        debug("EC::resume") << "this=" <<(std::hex,(void*)this) << "mem=" << (void*)mem << (std::dec,"") << "\n";
+        debug("EC::resume") << "this=" << hex((void*)this) << "mem=" << hex((void*)mem);
         // TODO: HACK: move timescale management inside the EC since we need to track it to implement pause/resume effectively
         update_external_timescale(1.0);  // HAAAAAAAAAAAAAAAAAAAAAAACK <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
@@ -182,6 +186,8 @@ public:
                             float x, float y, float z);
 
     void inject_fact_for_object(r_code::Code *object);
+
+    void inject_object(r_code::Code* object);
 
     r_code::Code* find_ram_object(uint32_t oid);
 

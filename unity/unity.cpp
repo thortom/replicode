@@ -769,7 +769,7 @@ int ExecutionContext::init(std::string settings_path, time_base_callback_t tcb)
     }
 
 
-    debug("main") << "Initializing with user operator library and user class code...";
+    debug("init") << "Initializing with user operator library and user class code...";
     using namespace std::chrono;
 
     if (!r_exec::Init(settings.usr_operator_path.c_str(),
@@ -783,9 +783,25 @@ int ExecutionContext::init(std::string settings_path, time_base_callback_t tcb)
         return 2;
     }
 
+    // dump out the metadata!
+    debug("init") << "metadata: classes_by_opcodes";
+    for (int k = 0; k < metadata.classes_by_opcodes.size(); k++) {
+        debug("init") << k << ":" << metadata.classes_by_opcodes[k].str_opcode;
+    }
+
+    debug("init") << "metadata: class names";
+    for (int k = 0; k < metadata.class_names.size(); k++) {
+        debug("init") << k << ":" << metadata.class_names[k];
+    }
+
+    debug("init") << "metadata: function names";
+    for (int k = 0; k < metadata.function_names.size(); k++) {
+        debug("init") << k << ":" << metadata.function_names[k];
+    }
+
 
     srand(r_exec::Now());
-    debug("main") << "compiling source...";
+    debug("init") << "compiling source...";
     std::string error;
 
     if (!r_exec::Compile(settings.source_file_name.c_str(), error, &seed, &metadata, false)) {
@@ -793,7 +809,7 @@ int ExecutionContext::init(std::string settings_path, time_base_callback_t tcb)
         return 3;
     }
 
-    debug("main") << "source compiled!";
+    debug("init") << "source compiled!";
 #if defined(WIN32) || defined(WIN64)
     r_exec::PipeOStream::Open(settings.debug_windows);
 #endif
@@ -867,12 +883,12 @@ void ExecutionContext::dump_memory(std::string decompiled_output_path /*= ""*/)
         image->object_names.symbols = image->object_names.symbols; // the F?
 
         if (settings.write_objects) {
-            debug("main") << "writing objects...";
+            debug("dump_memory") << "writing objects...";
             write_to_file(image, settings.objects_path, settings.test_objects ? &decompiler : nullptr, last_starting_time);
         }
 
         if (settings.decompile_objects && (!settings.write_objects || !settings.test_objects)) {
-            debug("main") << "decompiling objects..." << "(time_offset = last_starting_time = " << DebugStream::timestamp(last_starting_time) << ")" << "\n";
+            debug("dump_memory") << "decompiling objects..." << "(time_offset = last_starting_time = " << DebugStream::timestamp(last_starting_time) << ")" << "\n";
             if (settings.decompile_to_file) { // argv[2] is a file to redirect the decompiled code to.
                 std::ofstream outfile;
                 outfile.open(settings.decompilation_file_path.c_str(), std::ios_base::trunc);
@@ -897,12 +913,12 @@ void ExecutionContext::dump_memory(std::string decompiled_output_path /*= ""*/)
         image->object_names.symbols = image->object_names.symbols;
 
         if (settings.write_models) {
-            debug("main") << "writing models...";
+            debug("dump_memory") << "writing models...";
             write_to_file(image, settings.models_path, settings.test_models ? &decompiler : nullptr, last_starting_time);
         }
 
         if (settings.decompile_models && (!settings.write_models || !settings.test_models)) {
-            debug("main") << "decompiling models...";
+            debug("dump_memory") << "decompiling models...";
             if (decompiled_output_path.length() > 0) { // argv[2] is a file to redirect the decompiled code to.
                 std::ofstream outfile;
                 outfile.open(decompiled_output_path, std::ios_base::trunc);

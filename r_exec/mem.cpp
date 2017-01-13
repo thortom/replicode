@@ -493,10 +493,15 @@ void _Mem::pushTimeJob(r_exec::TimeJob *j)
 
 void _Mem::eject(View *view, uint16_t nodeID)
 {
+    ::debug("_Mem::eject") << "view!";
+    view->object->trace();
+
 }
 
 void _Mem::eject(Code *command)
 {
+    ::debug("_Mem::eject") << "code!";
+    command->trace();
 }
 
 ////////////////////////////////////////////////////////////////

@@ -14,7 +14,15 @@ void UnityMem::eject(Code *command)
 {
     uint16_t function = (uint16_t)((command->code(CMD_FUNCTION).atom >> 8) & 0x000000FF);
 
+    ::debug("UnityMem::eject") << "function" << function;
+//    ::debug("UnityMem::eject") <<
+    command->trace();
+
+//    ::debug("UnityMem::eject") << "opcodes:" << metadata->opcodes;
+
+
     if (function == metadata->opcodes["fire"]) {
+        ::debug("UnityMem::eject") << "fire";
         // extract args
         // invoke unity callbacks
 
@@ -35,6 +43,7 @@ void UnityMem::eject(Code *command)
 
     } else if (function == metadata->opcodes["rotate_to"])
     {
+        ::debug("UnityMem::eject") << "rotate_to";
         uint16_t args_set_index = command->code(CMD_ARGS).asIndex();
 
         uint16_t angle_index = (uint16_t)(args_set_index + 1);
