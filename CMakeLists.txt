@@ -36,5 +36,5 @@ foreach(test_file
         "test.2.replicode"
         "test.3.replicode"
         "test.4.replicode")
-    add_test(NAME Compiler-${test_file} WORKING_DIRECTORY /home/sandsmark/src/replicode/tests/compiler/ COMMAND compilertest ${test_file})
+add_test(NAME Compiler-${test_file} WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tests/compiler/ COMMAND compilertest ${test_file})
 endforeach()
