@@ -1,6 +1,6 @@
 ; debug
 
-!load V1.2/test.domain.replicode
+!load ../examples/V1.2/test.domain.replicode
 ; !load V1.2/drives.replicode
 
 

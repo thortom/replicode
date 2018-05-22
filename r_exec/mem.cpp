@@ -58,6 +58,7 @@ namespace r_exec
 
 _Mem::_Mem(): r_code::Mem(), state(NOT_STARTED), deleted(false)
 {
+    std::cout << "_Mem() called";
     new ModelBase();
     objects.reserve(1024);
 }
@@ -379,6 +380,7 @@ void _Mem::stop()
 
     state = STOPPED;
     m_stateMutex.unlock();
+    ::debug("_Mem") << "_stop() waiting for core threads to join...";
 
     for (i = 0; i < m_coreThreads.size(); ++i) {
         m_coreThreads[i].join();
@@ -389,6 +391,7 @@ void _Mem::stop()
     if (m_coreCount > 0) {
         m_coresRunning.wait(lock);
     }
+    ::debug("_Mem") << "_stop() clearing core threads...";
 
     m_coreThreads.clear();
 }
@@ -968,9 +971,11 @@ void MemStatic::delete_object(r_code::Code *object)   // called only if the obje
 
 r_comp::Image *MemStatic::get_objects()
 {
+    ::debug("MemStatic") << "get_objects()...";
     r_comp::Image *image = new r_comp::Image();
     image->timestamp = Now();
     image->add_objects(objects);
+    ::debug("MemStatic") << "get_objects()...gto 'em";
     return image;
 }
 

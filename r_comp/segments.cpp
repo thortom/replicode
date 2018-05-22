@@ -483,6 +483,7 @@ void Image::add_objects(r_code::list<P<r_code::Code> > &objects)
         }
     }
 
+    ::debug("Image") << "add_objects():" << "build refs...";
     build_references();
 }
 
@@ -535,7 +536,7 @@ void Image::add_object(Code *object)
     }
 
     uintptr_t _object = (uintptr_t)object;
-    sys_object->references[0] = (_object & 0x00000000FFFFFFF);
+    sys_object->references[0] = (_object & 0x00000000FFFFFFFF);
     sys_object->references[1] = (_object >> 32);
 }
 
@@ -586,7 +587,7 @@ void Image::add_object_full(Code *object)
 
     object->rel_views();
     uint64_t _object = uint64_t(object);
-    sys_object->references[0] = (_object & 0x00000000FFFFFFF);
+    sys_object->references[0] = (_object & 0x00000000FFFFFFFF);
     sys_object->references[1] = (_object >> 32);
 }
 

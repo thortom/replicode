@@ -42,5 +42,6 @@ class Controller;
 
 r_exec::Controller *auto_focus(r_code::View *view)
 {
+    std::cout << __FUNCTION__ << " - r_exec::_Mem:Get() = " << r_exec::_Mem::Get() << "\n";
     return new r_exec::AutoFocusController(view);
 }

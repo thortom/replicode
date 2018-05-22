@@ -1021,7 +1021,12 @@ bool Group::load(View *view, Code *object)
     case Atom::INSTANTIATED_CPP_PROGRAM: {
         ipgm_views[view->get_oid()] = view;
         std::string str = Utils::GetString<Code>(view->object, ICPP_PGM_NAME);
+
+        std::cout << "Loading ICCP_PGM_NME" << str << "\n";
+        std::cout << "before -   r_exec::_Mem::Get() = " << r_exec::_Mem::Get() << "\n";
+
         Controller *c = CPPPrograms::New(str, view); // now will be added to the deadline at start time.
+        std::cout << "after -    r_exec::_Mem::Get() = " << r_exec::_Mem::Get() << "\n";
 
         if (!c) {
             return false;

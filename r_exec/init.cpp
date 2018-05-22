@@ -133,6 +133,9 @@ public:
 
             if (!function) {
                 std::cout << "> Error: unable to find symbol " << functionName << " :" << dlerror() << std::endl;
+            } else
+            {
+                std::cout << "> Found symbol " << functionName << std::endl;
             }
         }
 
