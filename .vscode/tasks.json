@@ -1,0 +1,9 @@
+{
+    "tasks": [
+        {
+            "label": "build_replicode",
+            "type": "shell",
+            "command": "make -C build"
+        }
+    ]
+}

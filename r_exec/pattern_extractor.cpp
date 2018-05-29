@@ -455,7 +455,7 @@ void _TPX::inject_hlps(uint64_t analysis_starting_time)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+// Goal Targeted Pattern Extractor
 GTPX::GTPX(AutoFocusController *auto_focus, _Fact *target, _Fact *pattern, BindingMap *bindings, Fact *f_imdl): _TPX(auto_focus, target, pattern, bindings), f_imdl(f_imdl)
 {
 }
@@ -617,7 +617,7 @@ std::string GTPX::get_header() const
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+// Perdiction Targeted Pattern Extractor
 PTPX::PTPX(AutoFocusController *auto_focus, _Fact *target, _Fact *pattern, BindingMap *bindings, Fact *f_imdl): _TPX(auto_focus, target, pattern, bindings), f_imdl(f_imdl)
 {
 }
@@ -750,7 +750,7 @@ std::string PTPX::get_header() const
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+// Change Targeted Pattern Extractor
 CTPX::CTPX(AutoFocusController *auto_focus, View *premise): _TPX(auto_focus, premise->object), stored_premise(false), premise(premise)
 {
 }
