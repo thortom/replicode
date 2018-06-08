@@ -59,6 +59,7 @@ class _Fact;
 namespace r_exec
 {
 
+// Composite state (cst)
 // All inputs are expected to be synchronized (within the time tolerance).
 // The time value of each fact is therefore the same (within the time tolerance).
 // Therefore, said time value is not listed in the argument list of the icst.

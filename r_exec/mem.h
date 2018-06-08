@@ -46,8 +46,7 @@
 #include <thread>              // for thread
 #include <vector>              // for vector
 
-#include <replicode_common.h>  // for P
-#include <replicode_common.h>   // for REPLICODE_EXPORT
+#include <replicode_common.h>  // for P, REPLICODE_EXPORT
 
 namespace r_comp {
 class Image;
@@ -273,7 +272,7 @@ public:
     }
     uint64_t get_tpx_time_horizon() const
     {
-        std::cout << __FUNCTION__ << " - r_exec::_Mem:Get() = " << r_exec::_Mem::Get() << "\n";
+        LOG_DEBUG << __FUNCTION__ << " - r_exec::_Mem:Get() = " << r_exec::_Mem::Get() << "\n";
         return tpx_time_horizon;
     }
     uint64_t get_primary_thz() const
@@ -377,23 +376,8 @@ public:
     virtual r_comp::Image *get_objects() = 0; // create an image; fill with all objects; call only when stopped.
     r_comp::Image *get_models(); // create an image; fill with all models; call only when stopped.
 
-    //std::vector<uint64> timings_report; // debug facility.
     r_comp::Metadata *metadata = nullptr;
-    typedef enum {
-        CST_IN = 0,
-        CST_OUT = 1,
-        MDL_IN = 2,
-        MDL_OUT = 3,
-        PRED_MON = 4,
-        GOAL_MON = 5,
-        MDL_REV = 6,
-        HLP_INJ = 7
-    } TraceLevel;
-    static std::ostream &Output(TraceLevel l);
 };
-
-
-#define OUTPUT(c) _Mem::Output(_Mem::c)
 
 // _Mem that stores the objects as long as they are not invalidated.
 class REPLICODE_EXPORT MemStatic:

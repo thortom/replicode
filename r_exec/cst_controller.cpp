@@ -115,22 +115,22 @@ void CSTOverlay::inject_production()
             }
 
             ((CSTController *)controller)->inject_prediction(f_p_f_icst, lowest_cfd, time_to_live); // inject a f->pred->icst in the primary group, no rdx.
-            OUTPUT(CST_OUT) << Utils::RelativeTime(Now()) << "				" << f_p_f_icst->get_oid() << " pred icst[" << controller->getObject()->get_oid() << "][";
+            LOG_TRACE << Utils::Timestamp(Now()) << "				" << f_p_f_icst->get_oid() << " pred icst[" << controller->getObject()->get_oid() << "][";
 
             for (P<_Fact> input : inputs) {
-                OUTPUT(CST_OUT) << " " << input->get_oid();
+                LOG_TRACE << " " << input->get_oid();
             }
 
-            OUTPUT(CST_OUT) << std::endl;
+            LOG_TRACE << std::endl;
         } else {
             ((CSTController *)controller)->inject_icst(f_icst, lowest_cfd, time_to_live); // inject f->icst in the primary and secondary groups, and in the output groups.
-            OUTPUT(CST_OUT) << Utils::RelativeTime(Now()) << "				" << f_icst->get_oid() << " icst[" << controller->getObject()->get_oid() << "][";
+            LOG_TRACE << Utils::Timestamp(Now()) << "				" << f_icst->get_oid() << " icst[" << controller->getObject()->get_oid() << "][";
 
             for (P<_Fact> input : inputs) {
-                OUTPUT(CST_OUT) << " " << input->get_oid();
+                LOG_TRACE << " " << input->get_oid();
             }
 
-            OUTPUT(CST_OUT) << "]" << std::endl;
+            LOG_TRACE << "]" << std::endl;
         }
     } else { // there are simulations; the production is therefore a prediction; add the simulations to the latter.
         Pred *prediction = new Pred(f_icst, 1);
@@ -323,7 +323,7 @@ void CSTController::take_input(r_exec::View *input)
 
     if (input->object->code(0).asOpcode() == Opcodes::Fact ||
         input->object->code(0).asOpcode() == Opcodes::AntiFact) { // discard everything but facts and |facts.
-        OUTPUT(CST_IN) << Utils::RelativeTime(Now()) << " cst " << getObject()->get_oid() << " <- " << input->object->get_oid() << std::endl;
+        LOG_TRACE << Utils::Timestamp(Now()) << " cst " << getObject()->get_oid() << " <- " << input->object->get_oid() << std::endl;
         Controller::__take_input<CSTController>(input);
     }
 }

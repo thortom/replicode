@@ -30,9 +30,9 @@
 
 #include "r_code.h"
 
-#include <replicode_common.h>  // for debug, DebugStream
+#include <common_logger.h>      // for logging
 
 void Init()
 {
-    debug("r_code") << "r_code library loaded";
+    LOG_DEBUG << "r_code library loaded";
 }

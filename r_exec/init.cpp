@@ -52,7 +52,7 @@
 #include <utility>                      // for pair, move
 #include <sstream>                      // for ostringstream
 
-#include <replicode_common.h>          // for debug, DebugStream
+#include <common_logger.h>              // for logging
 
 #if !defined(WIN32) || !defined(WIN64)
 #include <dlfcn.h>   // for dlerror, dlsym
@@ -96,7 +96,7 @@ public:
 
         if (!library) {
             DWORD error = GetLastError();
-            std::cerr << "> Error: unable to load shared library " << fileName << " :" << error << std::endl;
+            LOG_ERROR << "> Error: unable to load shared library " << fileName << " :" << error << std::endl;
             return NULL;
         }
 
@@ -104,7 +104,7 @@ public:
         library = dlopen(fileName, RTLD_NOW | RTLD_GLOBAL);
 
         if (!library) {
-            std::cout << "> Error: unable to load shared library " << fileName << " :" << dlerror() << std::endl;
+            LOG_ERROR << "> Error: unable to load shared library " << fileName << " :" << dlerror() << std::endl;
             return nullptr;
         }
 
@@ -122,7 +122,7 @@ public:
 
             if (!function) {
                 DWORD error = GetLastError();
-                std::cerr << "GetProcAddress > Error: " << error << std::endl;
+                LOG_ERROR << "GetProcAddress > Error: " << error << std::endl;
             }
         }
 
@@ -132,10 +132,10 @@ public:
             function = T(dlsym(library, functionName));
 
             if (!function) {
-                std::cout << "> Error: unable to find symbol " << functionName << " :" << dlerror() << std::endl;
+                LOG_ERROR << "> Error: unable to find symbol " << functionName << " :" << dlerror() << std::endl;
             } else
             {
-                std::cout << "> Found symbol " << functionName << std::endl;
+                LOG_INFO << "> Found symbol " << functionName << std::endl;
             }
         }
 
@@ -165,16 +165,16 @@ bool Compile(const char* filename,
              bool compile_metadata)
 {
     if (!image) {
-        debug("init") << "null image supplied";
+        LOG_DEBUG << "init null image supplied";
         return false;
     }
 
     if (!metadata) {
-        debug("init") << "null metadata supplied";
+        LOG_DEBUG << "init null metadata supplied";
         return false;
     }
 
-    debug("init") << "compiling file: " << filename;
+    LOG_DEBUG << "init compiling file: " << filename;
     r_comp::Preprocessor preprocessor;
     r_comp::RepliStruct *root = preprocessor.process(filename, error, compile_metadata ? metadata : nullptr);
 
@@ -186,7 +186,7 @@ bool Compile(const char* filename,
     r_comp::Compiler compiler(image, metadata);
 
     if (!compiler.compile(root, false)) {
-        std::cerr << "! Compilation failed: " << compiler.getError() << std::endl;
+        LOG_ERROR << "! Compilation failed: " << compiler.getError() << std::endl;
         error = compiler.getError();
         return false;
     }
@@ -210,8 +210,8 @@ void TDecompiler::decompile()
     PipeOStream::Get(this->ostream_id - 1) << this->header.c_str();
     PipeOStream::Get(this->ostream_id - 1) << decompiled_code.str().c_str();
 #else
-    debug("tdecompiler") << this->header;
-    debug("tdecompiler") << decompiled_code.str();
+    LOG_DEBUG << "tdecompiler " << this->header;
+    LOG_DEBUG << "tdecompiler " << decompiled_code.str();
 #endif//win
 }
 
@@ -260,7 +260,7 @@ void TDecompiler::add_objects(const std::vector<P<Code> > &objects)
 void TDecompiler::runDecompiler()
 {
     if (!metadata) {
-        debug("tdecompiler") << "unable to run without metadata";
+        LOG_DEBUG << "tdecompiler " << "unable to run without metadata";
         return;
     }
 
@@ -508,7 +508,7 @@ bool Init(const char *user_operator_library_path,
         std::unordered_map<std::string, uint16_t>::iterator it = opcodes.find(op_name);
 
         if (it == opcodes.end()) {
-            std::cerr << "Operator " << op_name << " is undefined" << std::endl;
+            LOG_ERROR << "Operator " << op_name << " is undefined" << std::endl;
             exit(-1);
         }
 
@@ -585,7 +585,7 @@ bool Init(const char *user_operator_library_path,
         Callbacks::Register(_callback_name, callback);
     }
 
-    debug("init") << "user-defined operator library" << user_operator_library_path << "loaded";
+    LOG_DEBUG << "init user-defined operator library" << user_operator_library_path << "loaded";
     return true;
 }
 
@@ -598,7 +598,7 @@ bool Init(const char *user_operator_library_path,
     std::string error;
 
     if (!Compile(seed_path, error, image, metadata, true)) {
-        std::cerr << error << std::endl;
+        LOG_ERROR << error << std::endl;
         return false;
     }
 

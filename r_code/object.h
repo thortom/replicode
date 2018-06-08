@@ -42,8 +42,8 @@
 #include <unordered_set>            // for unordered_set
 #include <vector>                   // for vector, allocator
 
-#include <replicode_common.h>       // for P, _Object
-#include <replicode_common.h>        // for REPLICODE_EXPORT
+#include <replicode_common.h>       // for P, _Object, REPLICODE_EXPORT
+#include <common_logger.h>          // for logger
 
 namespace r_code
 {
@@ -284,15 +284,15 @@ public:
 
     void trace() const
     {
-        std::cout << "--------\n";
+        LOG_DEBUG << "--------\n";
 
         for (uint16_t i = 0; i < code_size(); ++i) {
-            std::cout << i << "\t";
+            LOG_DEBUG << i << "\t";
             code(i).trace();
-            std::cout << std::endl;
+            LOG_DEBUG << std::endl;
         }
 
-        std::cout << "OID: " << get_oid() << std::endl;
+        LOG_DEBUG << "OID: " << get_oid() << std::endl;
     }
 };
 

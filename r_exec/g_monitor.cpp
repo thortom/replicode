@@ -41,6 +41,7 @@
 #include <r_exec/opcodes.h>         // for Opcodes, Opcodes::Success
 #include <r_exec/time_job.h>        // for MonitoringJob
 #include <iostream>                 // for operator<<, cerr, ostream
+#include <common_logger.h>          // for logging
 
 
 namespace r_exec
@@ -290,7 +291,7 @@ bool GMonitor::reduce(_Fact *input)   // executed by a reduction core; invalidat
         }
     }
 
-    std::cerr << "reached invalid state!";
+    LOG_ERROR << "reached invalid state!";
     return false;
 }
 
@@ -488,7 +489,7 @@ bool SGMonitor::reduce(_Fact *input)
         return false;
     }
 
-    std::cerr << "reached invalid state!";
+    LOG_ERROR << "reached invalid state!";
     return false;
 }
 

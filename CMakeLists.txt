@@ -1,6 +1,6 @@
 project(replicode)
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.0)
 find_package (Threads)
 
 include_directories(${PROJECT_SOURCE_DIR})
@@ -8,6 +8,15 @@ include_directories(${PROJECT_SOURCE_DIR})
 if(UNIX)
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -std=c++11 -fPIC -g")
 endif()
+
+# Boost Log
+set(Boost_USE_MULTITHREADED ON)
+ADD_DEFINITIONS(-DBOOST_LOG_DYN_LINK)
+find_package(Boost COMPONENTS system thread log log_setup REQUIRED)
+include_directories(${Boost_INCLUDE_DIR})
+link_directories(${Boost_LIBRARY_DIRS})
+add_library(common_logger common_logger.cpp)
+target_link_libraries(common_logger ${Boost_LIBRARIES})
 
 add_subdirectory(r_code)
 add_subdirectory(r_comp)
@@ -21,7 +30,7 @@ set_property(TARGET replicode PROPERTY CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 configure_file(executor/settings.ini ${CMAKE_BINARY_DIR}/settings.ini COPYONLY)
-target_link_libraries(replicode r_exec r_comp r_code dl pthread rt)
+target_link_libraries(replicode r_exec r_comp r_code dl pthread rt common_logger)
 
 install(FILES replicode_common.h DESTINATION include)
 

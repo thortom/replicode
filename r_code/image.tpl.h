@@ -31,6 +31,7 @@
 #include <iostream>
 #include "atom.h"
 #include <replicode_common.h>
+#include <common_logger.h>
 
 
 namespace r_code
@@ -45,7 +46,7 @@ template<class I> Image<I> *Image<I>::Build(uint64_t timestamp, size_t map_size,
 template<class I> Image<I> *Image<I>::Read(std::ifstream &stream)
 {
     if (!stream.is_open()) {
-        std::cerr << "Can't read from non-open file" << std::endl;
+        LOG_ERROR << "Can't read from non-open file" << std::endl;
         return nullptr;
     }
 
@@ -110,14 +111,14 @@ template<class I> size_t Image<I>::getCodeSegmentSize() const
 
 template<class I> void Image<I>::trace() const
 {
-    debug("image trace:") << "Size: " << get_size();
-    debug("image trace:") << "Object Map Size: " << this->map_size();
-    debug("image trace:") << "Code Segment Size: " << this->code_size();
-    debug("image trace:") << "Names Size: " << this->names_size();
+    LOG_DEBUG << "Size: " << get_size();
+    LOG_DEBUG << "Object Map Size: " << this->map_size();
+    LOG_DEBUG << "Code Segment Size: " << this->code_size();
+    LOG_DEBUG << "Names Size: " << this->names_size();
     size_t i = 0;
 
     for(; i < this->map_size(); ++i) {
-        debug("image trace object") << i << " " << this->data(i);
+        LOG_DEBUG << i << " " << this->data(i);
     }
 
     // at this point, i is at the first word32 of the first object in the code segment
@@ -129,60 +130,60 @@ template<class I> void Image<I>::trace() const
         size_t object_reference_set_size = this->data(this->data(j) + 2);
         size_t object_marker_set_size = this->data(this->data(j) + 3);
         size_t object_view_set_size = this->data(this->data(j) + 4);
-        debug("image trace object") << "object" << i++;
+        LOG_DEBUG << "object" << i++;
         /*switch(object_axiom){
         case SysObject::ROOT_GRP:
-            debug("image trace object") << "root";
+            LOG_DEBUG << "root";
             break;
         case SysObject::STDIN_GRP:
-            debug("image trace object") << "stdin";
+            LOG_DEBUG << "stdin";
             break;
         case SysObject::STDOUT_GRP:
-            debug("image trace object") << "stdout";
+            LOG_DEBUG << "stdout";
             break;
         case SysObject::SELF_ENT:
-            debug("image trace object") << "self";
+            LOG_DEBUG << "self";
             break;
         default:
-            debug("image trace object") << "non-standard";
+            LOG_DEBUG << "non-standard";
             break;
         }*/
-        debug("image trace object") << i++ << " code size: " << object_code_size;
-        debug("image trace object") << i++ << " reference set size: " << object_reference_set_size;
-        debug("image trace object") << i++ << " marker set size: " << object_marker_set_size;
-        debug("image trace object") << i++ << " view set size: " << object_view_set_size;
+        LOG_DEBUG << i++ << " code size: " << object_code_size;
+        LOG_DEBUG << i++ << " reference set size: " << object_reference_set_size;
+        LOG_DEBUG << i++ << " marker set size: " << object_marker_set_size;
+        LOG_DEBUG << i++ << " view set size: " << object_view_set_size;
 
         for(; i < this->data(j) + 5 + object_code_size; ++i) {
-            debug("image trace object") << i;
+            LOG_DEBUG << i;
             ((Atom *)&this->data(i))->trace();
         }
 
         for(; i < this->data(j) + 5 + object_code_size + object_reference_set_size; ++i) {
-            debug("image trace reference") << i << this->data(i);
+            LOG_DEBUG << "image trace reference " << i << this->data(i);
         }
 
         for(; i < this->data(j) + 5 + object_code_size + object_reference_set_size + object_marker_set_size; ++i) {
-            debug("image trace code") << i << this->data(i);
+            LOG_DEBUG << "image trace code " << i << this->data(i);
         }
 
-        std::cout << "---view set---\n";
+        LOG_DEBUG << "---view set---\n";
 
         for(size_t k = 0; k < object_view_set_size; ++k) {
             size_t view_code_size = this->data(i);
             size_t view_reference_set_size = this->data(i + 1);
-            debug("image trace view") << "view" << k << "";
-            debug("image trace view") << i++ << "code size:" << view_code_size;
-            debug("image trace view") << i++ << "reference set size:" << view_reference_set_size;
-            std::cout << "---code---\n";
+            LOG_DEBUG << "image trace view " << "view" << k << "";
+            LOG_DEBUG << "image trace view " << i++ << "code size:" << view_code_size;
+            LOG_DEBUG << "image trace view " << i++ << "reference set size:" << view_reference_set_size;
+            LOG_DEBUG << "---code---\n";
             size_t l;
 
             for(l = 0; l < view_code_size; ++i, ++l) {
-                debug("image trace code") << i;
+                LOG_DEBUG << "image trace code " << i;
                 ((Atom *)&this->data(i))->trace();
             }
 
             for(l = 0; l < view_reference_set_size; ++i, ++l) {
-                debug("image trace reference") << i << this->data(i);
+                LOG_DEBUG << "image trace reference " << i << this->data(i);
             }
         }
     }

@@ -52,7 +52,7 @@
 #include <unordered_set>            // for unordered_set
 #include <utility>                  // for pair
 
-#include <replicode_common.h>      // for DebugStream, debug
+#include <common_logger.h>          // for Logger
 
 
 namespace r_exec
@@ -1022,11 +1022,11 @@ bool Group::load(View *view, Code *object)
         ipgm_views[view->get_oid()] = view;
         std::string str = Utils::GetString<Code>(view->object, ICPP_PGM_NAME);
 
-        std::cout << "Loading ICCP_PGM_NME" << str << "\n";
-        std::cout << "before -   r_exec::_Mem::Get() = " << r_exec::_Mem::Get() << "\n";
+        LOG_DEBUG << "Loading ICCP_PGM_NME" << str << "\n";
+        LOG_DEBUG << "before -   r_exec::_Mem::Get() = " << r_exec::_Mem::Get() << "\n";
 
         Controller *c = CPPPrograms::New(str, view); // now will be added to the deadline at start time.
-        std::cout << "after -    r_exec::_Mem::Get() = " << r_exec::_Mem::Get() << "\n";
+        LOG_DEBUG << "after -    r_exec::_Mem::Get() = " << r_exec::_Mem::Get() << "\n";
 
         if (!c) {
             return false;
@@ -1098,9 +1098,9 @@ void Group::update(uint64_t planned_time)
 
     uint64_t now = Now();
     //if(get_secondary_group()!=NULL)
-    // std::cout<<Utils::RelativeTime(Now())<<" UPR\n";
+    // LOG_DEBUG<<Utils::Timestamp(Now())<<" UPR\n";
     //if(this==_Mem::Get()->get_stdin())
-    // std::cout<<Utils::RelativeTime(Now())<<" ----------------------------------------------------------------\n";
+    // LOG_DEBUG<<Utils::Timestamp(Now())<<" ----------------------------------------------------------------\n";
     newly_salient_views.clear();
 
     // execute pending operations.
@@ -1197,7 +1197,7 @@ void Group::update(uint64_t planned_time)
 
     //if(get_secondary_group()!=NULL)
     //if(this==_Mem::Get()->get_stdin())
-    // std::cout<<Utils::RelativeTime(Now())<<" ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n";
+    // LOG_DEBUG<<Utils::Timestamp(Now())<<" ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n";
 }
 
 void Group::_update_saliency(GroupState *state, View *view)
@@ -1383,7 +1383,7 @@ void Group::inject_hlps(std::vector<View *> &views)
 
         switch (a.getDescriptor()) {
         case Atom::COMPOSITE_STATE: {
-            debug("group inject hlp") << DebugStream::timestamp(Now() - Utils::GetTimeReference()) << " -> cst " << (*view)->object->get_oid();
+            LOG_DEBUG << "group inject hlp " << Utils::Timestamp(Now()) << " -> cst " << (*view)->object->get_oid();
             ipgm_views[(*view)->get_oid()] = *view;
             CSTController *c = new CSTController(*view);
             (*view)->controller = c;
@@ -1392,7 +1392,7 @@ void Group::inject_hlps(std::vector<View *> &views)
         }
 
         case Atom::MODEL: {
-            debug("group inject hlp") << DebugStream::timestamp(Now() - Utils::GetTimeReference()) << " -> mdl " << (*view)->object->get_oid();
+            LOG_DEBUG << "group inject hlp " << Utils::Timestamp(Now()) << " -> mdl " << (*view)->object->get_oid();
             ipgm_views[(*view)->get_oid()] = *view;
             bool inject_in_secondary_group;
             MDLController *c = MDLController::New(*view, inject_in_secondary_group);
@@ -1529,7 +1529,7 @@ void Group::inject(View *view)
         break;
 
     case Atom::COMPOSITE_STATE: {
-        OUTPUT(HLP_INJ) << Utils::RelativeTime(Now()) << " cst " << view->object->get_oid() << " injected" << std::endl;
+        LOG_TRACE << Utils::Timestamp(Now()) << " cst " << view->object->get_oid() << " injected" << std::endl;
         ipgm_views[view->get_oid()] = view;
         CSTController *c = new CSTController(view);
         view->controller = c;
@@ -1548,7 +1548,7 @@ void Group::inject(View *view)
     }
 
     case Atom::MODEL: {
-        OUTPUT(HLP_INJ) << Utils::RelativeTime(Now()) << " mdl " << view->object->get_oid() << " injected" << std::endl;
+        LOG_TRACE << Utils::Timestamp(Now()) << " mdl " << view->object->get_oid() << " injected" << std::endl;
         ipgm_views[view->get_oid()] = view;
         bool inject_in_secondary_group;
         MDLController *c = MDLController::New(view, inject_in_secondary_group);
@@ -1577,7 +1577,7 @@ void Group::inject(View *view)
     }
 
     //if(get_oid()==2)
-    // std::cout<<Utils::RelativeTime(Now())<<" stdin <- "<<view->object->get_oid()<<std::endl;
+    // LOG_DEBUG<<Utils::Timestamp(Now())<<" stdin <- "<<view->object->get_oid()<<std::endl;
 }
 
 void Group::inject_new_object(View *view)   // the view can hold anything but groups and notifications.
@@ -1601,7 +1601,7 @@ void Group::inject_new_object(View *view)   // the view can hold anything but gr
     inject(view);
     notifyNew(view);
     //uint64_t t1=Now();
-    //std::cout<<"injection: "<<t1-t0<<std::endl;
+    //LOG_DEBUG<<"injection: "<<t1-t0<<std::endl;
 }
 
 void Group::inject_existing_object(View *view)   // the view can hold anything but groups and notifications.
@@ -1703,7 +1703,7 @@ void Group::inject_reduction_jobs(View *view)
             v->second->controller->_take_input(view);    // view will be copied.
         }
 
-        //std::cout<<std::hex<<(void *)v->second->controller<<std::dec<<" <- "<<view->object->get_oid()<<std::endl;}
+        //LOG_DEBUG<<std::hex<<(void *)v->second->controller<<std::dec<<" <- "<<view->object->get_oid()<<std::endl;}
         FOR_ALL_VIEWS_WITH_INPUTS_END
     }
 

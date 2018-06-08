@@ -35,6 +35,7 @@
 
 #include "Operators/operators.h"
 #include <replicode_common.h>
+#include <common_logger.h>
 
 namespace r_comp {
 class Metadata;
@@ -43,7 +44,7 @@ class Metadata;
 void Init(r_comp::Metadata *metadata)
 {
     Operators::Init(metadata);
-    debug("user operators") << "usr operators initialized";
+    LOG_DEBUG << "usr operators initialized";
 }
 
 uint16_t GetOperatorCount()

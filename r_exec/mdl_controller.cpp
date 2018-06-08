@@ -47,6 +47,7 @@
 #include <string>                   // for operator<<, char_traits, etc
 
 #include <r_exec/overlay.tpl.h>     // for __take_input4
+#include <common_logger.h>          // for logger
 
 namespace r_exec
 {
@@ -77,7 +78,7 @@ PrimaryMDLOverlay::~PrimaryMDLOverlay()
 
 Overlay *PrimaryMDLOverlay::reduce(_Fact *input, Fact *f_p_f_imdl, MDLController *req_controller)
 {
-    OUTPUT(MDL_IN) << Utils::RelativeTime(Now()) << " mdl " << controller->getObject()->get_oid() << " <- " << input->get_oid() << std::endl;
+    LOG_TRACE << "mdl_controller " << Utils::Timestamp(Now()) << " mdl " << controller->getObject()->get_oid() << " <- " << input->get_oid();
     _Fact *input_object;
     Pred *prediction = input->get_pred();
     bool simulation;
@@ -1193,7 +1194,7 @@ void TopLevelMDLController::abduce_lhs(HLPBindingMap *bm,
     }
 
     add_g_monitor(new GMonitor(this, bm, deadline, now + sim_thz, f_sub_goal, f_imdl, evidence));
-    OUTPUT(MDL_OUT) << Utils::RelativeTime(Now()) << "				mdl " << getObject()->get_oid() << " -> " << f_sub_goal->get_oid() << " goal[" << Utils::RelativeTime(sub_goal_target->get_after()) << "," << Utils::RelativeTime(sub_goal_target->get_before()) << "[\n";
+    LOG_TRACE << Utils::Timestamp(Now()) << "				mdl " << getObject()->get_oid() << " -> " << f_sub_goal->get_oid() << " goal[" << Utils::Timestamp(sub_goal_target->get_after()) << "," << Utils::Timestamp(sub_goal_target->get_before()) << "[\n";
 }
 
 void TopLevelMDLController::predict(HLPBindingMap *bm, _Fact *input, Fact *f_imdl, bool chaining_was_allowed, RequirementsPair &r_p, Fact *ground)   // no prediction here.
@@ -1246,9 +1247,9 @@ void TopLevelMDLController::register_goal_outcome(Fact *goal, bool success, _Fac
     register_drive_outcome(goal->get_goal()->sim->super_goal, success);
 
     if (success) {
-        OUTPUT(GOAL_MON) << Utils::RelativeTime(Now()) << " " << goal->get_oid() << " goal success\n";
+        LOG_TRACE << Utils::Timestamp(Now()) << " " << goal->get_oid() << " goal success\n";
     } else {
-        OUTPUT(GOAL_MON) << Utils::RelativeTime(Now()) << " " << goal->get_oid() << " goal failure\n";
+        LOG_TRACE << Utils::Timestamp(Now()) << " " << goal->get_oid() << " goal failure\n";
     }
 }
 
@@ -1270,8 +1271,8 @@ void TopLevelMDLController::register_drive_outcome(Fact *drive, bool success) co
     Group *drives_host = (Group *)get_out_group(out_group_count); // the drives group is the last of the output groups.
     View *view = new View(View::SYNC_ONCE, now, 1, 1, drives_host, primary_host, f_drive_success); // sln=1,res=1.
     _Mem::Get()->inject(view); // inject in the drives group (will be caught by the drive injectors).
-    //if(success)std::cout<<Utils::RelativeTime(Now())<<" drive success\n";
-    //else std::cout<<Utils::RelativeTime(Now())<<" drive failure\n";
+    //if(success)std::cout<<Utils::Timestamp(Now())<<" drive success\n";
+    //else std::cout<<Utils::Timestamp(Now())<<" drive failure\n";
 }
 
 void TopLevelMDLController::register_simulated_goal_outcome(Fact *goal, bool success, _Fact *evidence) const   // evidence is a simulated prediction.
@@ -1408,7 +1409,7 @@ void PrimaryMDLController::predict(HLPBindingMap *bm, _Fact *input, Fact *f_imdl
     if (is_requirement()) {
         PrimaryMDLController *c = (PrimaryMDLController *)controllers[RHSController]; // rhs controller: in the same view.
         c->store_requirement(production, this, chaining_was_allowed, simulation); // if not simulation, stores also in the secondary controller.
-        OUTPUT(MDL_OUT) << Utils::RelativeTime(Now()) << "				mdl " << getObject()->get_oid() << ": " << input->get_oid() << " -> pred imdl " << bound_rhs->get_reference(0)->get_reference(0)->get_oid() << std::endl;
+        LOG_TRACE << Utils::Timestamp(Now()) << "				mdl " << getObject()->get_oid() << ": " << input->get_oid() << " -> pred imdl " << bound_rhs->get_reference(0)->get_reference(0)->get_oid() << std::endl;
         return;
     }
 
@@ -1428,7 +1429,7 @@ void PrimaryMDLController::predict(HLPBindingMap *bm, _Fact *input, Fact *f_imdl
             if (prediction) { // no rdx nor monitoring if the input was a prediction; case of a reuse: f_imdl becomes f->p->f_imdl.
                 Fact *pred_f_imdl = new Fact(new Pred(f_imdl, 1), now, now, 1, 1);
                 inject_prediction(production, pred_f_imdl, confidence, before - now, nullptr);
-                OUTPUT(MDL_OUT) << Utils::RelativeTime(Now()) << "				mdl " << getObject()->get_oid() << ": " << input->get_oid() << " -> " << production->get_oid() << " pred " << bound_rhs->get_reference(0)->code(MK_VAL_VALUE).asFloat() << std::endl;
+                LOG_TRACE << Utils::Timestamp(Now()) << "				mdl " << getObject()->get_oid() << ": " << input->get_oid() << " -> " << production->get_oid() << " pred " << bound_rhs->get_reference(0)->code(MK_VAL_VALUE).asFloat() << std::endl;
             } else {
                 Code *mk_rdx = new MkRdx(f_imdl, (Code *)input, production, 1, bindings);
                 bool rate_failures = inject_prediction(production, f_imdl, confidence, before - now, mk_rdx);
@@ -1437,7 +1438,7 @@ void PrimaryMDLController::predict(HLPBindingMap *bm, _Fact *input, Fact *f_imdl
                 Group *secondary_host = secondary->getView()->get_host(); // inject f_imdl in secondary group.
                 View *view = new View(View::SYNC_ONCE, now, confidence, 1, getView()->get_host(), secondary_host, f_imdl); // SYNC_ONCE,res=resilience.
                 _Mem::Get()->inject(view);
-                OUTPUT(MDL_OUT) << Utils::RelativeTime(Now()) << "				mdl " << getObject()->get_oid() << ": " << input->get_oid() << " -> " << production->get_oid() << " pred " << bound_rhs->get_reference(0)->code(MK_VAL_VALUE).asFloat() << std::endl;
+                LOG_TRACE << Utils::Timestamp(Now()) << "				mdl " << getObject()->get_oid() << ": " << input->get_oid() << " -> " << production->get_oid() << " pred " << bound_rhs->get_reference(0)->code(MK_VAL_VALUE).asFloat() << std::endl;
             }
         }
     } else { // no monitoring for simulated predictions.
@@ -1716,7 +1717,7 @@ void PrimaryMDLController::abduce_lhs(HLPBindingMap *bm, Fact *super_goal, Fact 
 
             if (!evidence) {
                 inject_goal(bm, f_sub_goal, f_imdl);
-                OUTPUT(MDL_OUT) << Utils::RelativeTime(Now()) << " " << getObject()->get_oid() << " -> " << f_sub_goal->get_oid() << " goal [" << Utils::RelativeTime(sub_goal->get_target()->get_after()) << "," << Utils::RelativeTime(sub_goal->get_target()->get_before()) << "[\n";
+                LOG_TRACE << Utils::Timestamp(Now()) << " " << getObject()->get_oid() << " -> " << f_sub_goal->get_oid() << " goal [" << Utils::Timestamp(sub_goal->get_target()->get_after()) << "," << Utils::Timestamp(sub_goal->get_target()->get_before()) << "[\n";
             }
 
             break;
@@ -1734,7 +1735,7 @@ void PrimaryMDLController::abduce_imdl(HLPBindingMap *bm, Fact *super_goal, Fact
     Fact *f_sub_goal = new Fact(sub_goal, now, now, 1, 1);
     add_r_monitor(new RMonitor(this, bm, super_goal->get_goal()->get_target()->get_before(), sim->thz, f_sub_goal, f_imdl)); // the monitor will wait until the deadline of the super-goal.
     inject_goal(bm, f_sub_goal, f_imdl);
-    OUTPUT(MDL_OUT) << Utils::RelativeTime(Now()) << " " << getObject()->get_oid() << " -> " << f_sub_goal->get_oid() << " goal imdl " << f_sub_goal->get_reference(0)->get_reference(0)->get_oid() << "[" << Utils::RelativeTime(sub_goal->get_target()->get_after()) << "," << Utils::RelativeTime(sub_goal->get_target()->get_before()) << "[\n";
+    LOG_TRACE << Utils::Timestamp(Now()) << " " << getObject()->get_oid() << " -> " << f_sub_goal->get_oid() << " goal imdl " << f_sub_goal->get_reference(0)->get_reference(0)->get_oid() << "[" << Utils::Timestamp(sub_goal->get_target()->get_after()) << "," << Utils::Timestamp(sub_goal->get_target()->get_before()) << "[\n";
 }
 
 void PrimaryMDLController::abduce_simulated_lhs(HLPBindingMap *bm, Fact *super_goal, Fact *f_imdl, bool opposite, double confidence, Sim *sim)   // goal is f->g->f->object or f->g->|f->object; called concurrently by redcue() and _GMonitor::update().
@@ -1898,10 +1899,10 @@ void PrimaryMDLController::register_pred_outcome(Fact *f_pred, bool success, _Fa
 
     if (success) {
         f_success_object = new Fact(success_object, now, now, confidence, 1);
-        OUTPUT(PRED_MON) << Utils::RelativeTime(now) << evidence->get_oid() << " -> " << f_pred->get_oid() << " pred success" << std::endl;
+        LOG_TRACE << Utils::Timestamp(now) << evidence->get_oid() << " -> " << f_pred->get_oid() << " pred success" << std::endl;
     } else {
         f_success_object = new AntiFact(success_object, now, now, confidence, 1);
-        OUTPUT(PRED_MON) << Utils::RelativeTime(now) << " " << f_pred->get_oid() << " pred failure" << std::endl;
+        LOG_TRACE << Utils::Timestamp(now) << " " << f_pred->get_oid() << " pred failure" << std::endl;
     }
 
     Group *primary_host = get_host();
@@ -1969,11 +1970,11 @@ void PrimaryMDLController::register_goal_outcome(Fact *goal, bool success, _Fact
         if (!evidence) { // assert absence of the goal target.
             absentee = goal->get_goal()->get_target()->get_absentee();
             success_object = new Success(goal, absentee, 1);
-            OUTPUT(PRED_MON) << Utils::RelativeTime(now) << " " << getObject() << goal->get_oid() << " goal success" << std::endl;
+            LOG_TRACE << Utils::Timestamp(now) << " " << getObject() << goal->get_oid() << " goal success" << std::endl;
         } else {
             absentee = nullptr;
             success_object = new Success(goal, evidence, 1);
-            OUTPUT(PRED_MON) << Utils::RelativeTime(now) << " " << getObject() << goal->get_oid() << " goal failure" << std::endl;
+            LOG_TRACE << Utils::Timestamp(now) << " " << getObject() << goal->get_oid() << " goal failure" << std::endl;
         }
 
         f_success_object = new AntiFact(success_object, now, now, 1, 1);
@@ -2057,15 +2058,15 @@ void PrimaryMDLController::rate_model(bool success)
         } else if (strength == 1) { // activate out-of-context strong models in the secondary group, deactivate from the primary.
             getView()->set_act(0);
             secondary->getView()->set_act(success_rate); // may trigger secondary->gain_activation().
-            OUTPUT(MDL_REV) << Utils::RelativeTime(Now()) << " mdl " << getObject()->get_oid() << " phased out " << std::endl;
+            LOG_TRACE << Utils::Timestamp(Now()) << " mdl " << getObject()->get_oid() << " phased out " << std::endl;
         } else { // no weak models live in the secondary group.;
             ModelBase::Get()->register_mdl_failure(model);
             kill_views();
-            OUTPUT(MDL_REV) << Utils::RelativeTime(Now()) << " mdl " << getObject()->get_oid() << " deleted " << std::endl;
+            LOG_TRACE << Utils::Timestamp(Now()) << " mdl " << getObject()->get_oid() << " deleted " << std::endl;
         }
     }
 
-    OUTPUT(MDL_REV) << "mdl " << model->get_oid() << " count:" << instance_count << " success_rate:" << success_rate << std::endl;
+    LOG_TRACE << "mdl " << model->get_oid() << " count:" << instance_count << " success_rate:" << success_rate << std::endl;
 }
 
 void PrimaryMDLController::assume(_Fact *input)
@@ -2151,7 +2152,7 @@ void PrimaryMDLController::assume_lhs(HLPBindingMap *bm, bool opposite, _Fact *i
     int64_t resilience = _Mem::Get()->get_goal_pred_success_res(primary_host, now, time_to_live);
     View *view = new View(View::SYNC_ONCE, now, confidence, resilience, primary_host, primary_host, bound_lhs); // SYNC_ONCE,res=resilience.
     _Mem::Get()->inject(view);
-    OUTPUT(MDL_OUT) << Utils::RelativeTime(Now()) << "				mdl " << getObject()->get_oid() << " -> " << bound_lhs->get_oid() << " asmp" << std::endl;
+    LOG_TRACE << Utils::Timestamp(Now()) << "				mdl " << getObject()->get_oid() << " -> " << bound_lhs->get_oid() << " asmp" << std::endl;
 }
 
 void PrimaryMDLController::kill_views()
@@ -2303,7 +2304,7 @@ void SecondaryMDLController::rate_model()   // acknowledge successes only; the p
     if (success_rate > primary->getView()->get_host()->get_act_thr()) {
         getView()->set_act(0);
         primary->getView()->set_act(success_rate); // activate the primary controller in its own group g: will be performmed at the nex g->upr.
-        OUTPUT(MDL_REV) << Utils::RelativeTime(Now()) << " mdl " << getObject()->get_oid() << " phased in " << std::endl;
+        LOG_TRACE << Utils::Timestamp(Now()) << " mdl " << getObject()->get_oid() << " phased in " << std::endl;
     } else { // will trigger primary->gain_activation() at the next g->upr.
         if (success_rate > getView()->get_host()->get_act_thr()) { // else: leave the model in the secondary group.
             getView()->set_act(success_rate);

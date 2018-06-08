@@ -7,6 +7,7 @@
 #include <string>                // for string, allocator, operator+, etc
 #include <fstream>               // for ifstream
 #include <sstream>               // for stringstream
+#include <common_logger.h>       // for logger
 
 namespace r_comp
 {
@@ -19,7 +20,6 @@ std::string RepliStruct::GlobalFilename;
 
 RepliStruct::RepliStruct(RepliStruct::Type type)
 {
-    //    std::cout << "creating strucT: " << GlobalFilename << GlobalLine << std::endl;
     this->type = type;
     this->fileName = GlobalFilename;
     line = GlobalLine;
@@ -854,45 +854,44 @@ int indentationLevel = 0;
 std::ostream &operator<<(std::ostream &os, const RepliStruct &structure)
 {
     indentationLevel++;
-    std::cout << std::endl;
+    LOG_DEBUG << std::endl;
 
     for (int i = 0; i < indentationLevel; i++) {
-        std::cout << ' ';
+        LOG_DEBUG << ' ';
     }
 
-    //    std::cout << "cmd: " << structure.cmd << " tail: '" << structure.tail << "' type: ";
     switch (structure.type) {
     case RepliStruct::Atom:
-        std::cout << "atom";
+        LOG_DEBUG << "atom";
         break;
 
     case RepliStruct::Directive:
-        std::cout << "directive";
+        LOG_DEBUG << "directive";
         break;
 
     case RepliStruct::Condition:
-        std::cout << "condition";
+        LOG_DEBUG << "condition";
         break;
 
     case RepliStruct::Structure:
-        std::cout << "structure";
+        LOG_DEBUG << "structure";
         break;
 
     case RepliStruct::Development:
-        std::cout << "development";
+        LOG_DEBUG << "development";
         break;
 
     case RepliStruct::Set:
-        std::cout << "set";
+        LOG_DEBUG << "set";
         break;
 
     case RepliStruct::Root:
-        std::cout << "root";
+        LOG_DEBUG << "root";
         break;
     }
 
-    std::cout << ' ';
-    //   std::cout << std::endl;
+    LOG_DEBUG << ' ';
+    //   LOG_DEBUG << std::endl;
 
     switch (structure.type) {
     case RepliStruct::Atom:

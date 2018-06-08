@@ -30,7 +30,6 @@
 
 #include "utils.h"
 
-#include <replicode_common.h>  // for DebugStream
 #include <r_code/object.h>      // for Code
 #include <r_code/utils.h>       // for Utils
 #include <string.h>             // for memcpy
@@ -180,8 +179,21 @@ int64_t Utils::GetGroupResilience(double resilience, double origin_upr, double d
     return res;
 }
 
-std::string Utils::RelativeTime(uint64_t t)
+std::string Utils::Timestamp(uint64_t t, bool relative_time)
 {
-    return DebugStream::timestamp(t - TimeReference);
+    if (relative_time)
+        t = t - TimeReference;
+
+    uint64_t us = t % 1000;
+    uint64_t ms = t / 1000;
+    uint64_t s = ms / 1000;
+    ms = ms % 1000;
+    std::string _s = std::to_string(s);
+    _s += "s:";
+    _s += std::to_string(ms);
+    _s += "ms:";
+    _s += std::to_string(us);
+    _s += "us";
+    return _s;
 }
 }

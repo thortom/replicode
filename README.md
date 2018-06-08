@@ -5,9 +5,12 @@ a constructivist programming language and runtime.
 
 This repo is forked from [https://github.com/dmacd/replicode](https://github.com/dmacd/replicode)
 
-to build cmake and a modern c++ compiler is required:
+This project is built with [vscode](https://code.visualstudio.com/), to build cmake and a modern c++ compiler is required.
 
 # setup
+sudo apt install build-essential
+sudo apt install cmake
+sudo apt install libboost-log-dev
 git submodule add git://github.com/arsenm/sanitizers-cmake.git externals/sanitizers-cmake (see: https://github.com/arsenm/sanitizers-cmake)
 
 # build

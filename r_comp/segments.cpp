@@ -42,8 +42,7 @@
 #include <utility>                  // for pair
 #include <vector>                   // for vector
 
-#include <replicode_common.h>       // for P
-#include <replicode_common.h>      // for DebugStream, debug
+#include <common_logger.h>          // for logging
 
 
 namespace r_comp
@@ -483,7 +482,7 @@ void Image::add_objects(r_code::list<P<r_code::Code> > &objects)
         }
     }
 
-    ::debug("Image") << "add_objects():" << "build refs...";
+    LOG_DEBUG << "Image - add_objects():" << "build refs...";
     build_references();
 }
 
@@ -645,7 +644,7 @@ void Image::build_references(SysObject *sys_object, Code *object)
 
 void Image::get_objects(Mem *mem, r_code::vector<Code *> &ram_objects)
 {
-    debug("image") << "number of objects: " << code_segment.objects.size();
+    LOG_DEBUG << "number of objects: " << code_segment.objects.size();
 
     for (size_t i = 0; i < code_segment.objects.size(); ++i) {
         ram_objects[i] = mem->build_object(code_segment.objects[i]);

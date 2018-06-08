@@ -43,7 +43,6 @@
 #include <cstdint>                  // for uint16_t, uint64_t, uint32_t, etc
 #include <utility>                  // for pair
 
-#include <replicode_common.h>      // for DebugStream
 
 namespace r_comp
 {
@@ -793,7 +792,7 @@ void Decompiler::write_any(uint16_t read_index, bool &after_tail_wildcard, bool 
                     ts -= time_offset;
                 }
 
-                out_stream->push(DebugStream::timestamp(ts), read_index);
+                out_stream->push(Utils::Timestamp(ts, false), read_index);
             }
 
             break;

@@ -1,4 +1,3 @@
-#include <replicode_common.h>    // for debug, DebugStream
 #include <r_code/object.h>        // for SysObject
 #include <r_code/vector.h>        // for vector
 #include <r_comp/compiler.h>      // for Compiler
@@ -13,6 +12,7 @@
 #include <sstream>
 #include <string>                 // for allocator, string, basic_string, etc
 #include <type_traits>            // for enable_if<>::type
+#include <common_logger.h>        // for logger
 
 namespace r_comp {
 class RepliStruct;
@@ -24,17 +24,17 @@ class RepliStruct;
 int main(int argc, char *argv[])
 {
     if (argc < 2) {
-        debug("compiler test") << "missing source file argument";
+        LOG_DEBUG << "compiler test missing source file argument";
         return -1;
     }
 
     std::string testfile = argv[1];
-    debug("compiler test") << "Testing compiler with file" << testfile;
+    LOG_DEBUG << "compiler test Testing compiler with file" << testfile;
     std::string tracefilename = testfile + ".trace";
     std::ifstream tracefile(tracefilename.c_str(), std::ios::binary);
 
     if (!tracefile.good()) {
-        debug("compiler test") << "Unable to open .trace file" << tracefilename;
+        LOG_DEBUG << "compiler test Unable to open .trace file" << tracefilename;
         return 1;
     }
 
@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
                                (std::istreambuf_iterator<char>()));
 
     if (correct_trace.length() == 0) {
-        debug("compiler test") << ".trace file is empty";
+        LOG_DEBUG << "compiler test .trace file is empty";
         return 2;
     }
 
@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
     USR_CLASSES_PATH,
     &image,
     &metadata)) {
-        debug("compiler test") << "Unable to initialize metadata and image";
+        LOG_DEBUG << "compiler test Unable to initialize metadata and image";
         return 3;
     }
     r_comp::Preprocessor preprocessor;
@@ -65,17 +65,17 @@ int main(int argc, char *argv[])
     r_comp::RepliStruct *root = preprocessor.process(testfile.c_str(), error, &metadata);
 
     if (error.length() != 0) {
-        debug("compiler test") << "Error from preprocessor:" << error;
+        LOG_DEBUG << "compiler test Error from preprocessor:" << error;
         return 4;
     }
 
     if (!root) {
-        debug("compiler test") << "Preprocessor returned null-root, without error!";
+        LOG_DEBUG << "compiler test Preprocessor returned null-root, without error!";
         return 5;
     }
 
     if (!compiler.compile(root, false)) {
-        debug("compiler test") << "Compile failed:" << compiler.getError();
+        LOG_DEBUG << "compiler test Compile failed:" << compiler.getError();
         return 6;
     }
 
@@ -93,19 +93,19 @@ int main(int argc, char *argv[])
     std::cout.rdbuf(old_cout);
 
     if (result_stream.str() != correct_trace) {
-        debug("compiler test") << "Trace does not match expected trace" << result_stream.str().length() << correct_trace.length();
+        LOG_DEBUG << "compiler test Trace does not match expected trace" << result_stream.str().length() << correct_trace.length();
         std::ofstream outfile((testfile + ".trace.wrong").c_str(), std::ios::trunc);
         outfile << result_stream.str();
         r_comp::Decompiler decompiler;
         decompiler.init(&metadata);
         std::ostringstream decompiled_code;
         uint64_t decompiled_object_count = decompiler.decompile(&image, &decompiled_code, 0, false);
-        debug("compiler test") << "decompiled objects count:" << decompiled_object_count << "image object count:" << image.code_segment.objects.size();
+        LOG_DEBUG << "compiler test decompiled objects count:" << decompiled_object_count << "image object count:" << image.code_segment.objects.size();
         std::ofstream decompilefile((testfile + ".decompiled.replicode").c_str(), std::ios::trunc);
         decompilefile << decompiled_code.rdbuf();
         return 7;
     }
 
-    debug("compiler test") << "Test succeeded!";
+    LOG_DEBUG << "compiler test Test succeeded!";
     return 0;
 }

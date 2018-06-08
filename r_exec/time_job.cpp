@@ -37,6 +37,7 @@
 #include <r_exec/pgm_controller.h>  // for AntiPGMController, etc
 #include <r_exec/time_job.h>        // for TimeJob, SaliencyPropagationJob, etc
 #include <r_exec/view.h>            // for View
+#include <common_logger.h>          // for logger
 
 
 namespace r_exec
@@ -48,7 +49,7 @@ TimeJob::TimeJob(uint64_t target_time): _Object(), target_time(target_time)
 
 void TimeJob::report(int64_t lag) const
 {
-    debug("time job") << "late generic:" << lag << "us behind.";
+    LOG_DEBUG << "time job late generic:" << lag << "us behind.";
 }
 
 ////////////////////////////////////////////////////////////
@@ -98,7 +99,7 @@ bool AntiPGMSignalingJob::update()
 
 void AntiPGMSignalingJob::report(int64_t lag) const
 {
-    debug("anti-program signaling job") << "signaling:" << lag << "us behind.";
+    LOG_DEBUG << "anti-program signaling job signaling:" << lag << "us behind.";
 }
 
 ////////////////////////////////////////////////////////////
@@ -118,7 +119,7 @@ bool InputLessPGMSignalingJob::update()
 
 void InputLessPGMSignalingJob::report(int64_t lag) const
 {
-    debug("input-less program signaling job") << "late:" << lag << "us behind.";
+    LOG_DEBUG << "input-less program signaling job late:" << lag << "us behind.";
 }
 
 ////////////////////////////////////////////////////////////
@@ -154,7 +155,7 @@ bool EInjectionJob::update()
 
 void EInjectionJob::report(int64_t lag) const
 {
-    debug("einjection job") << "late:" << lag << "us behind.";
+    LOG_DEBUG << "einjection job late:" << lag << "us behind.";
 }
 
 ////////////////////////////////////////////////////////////
@@ -176,7 +177,7 @@ bool SaliencyPropagationJob::update()
 
 void SaliencyPropagationJob::report(int64_t lag) const
 {
-    debug("saliency propagation job") << "late:" << lag << "us behind.";
+    LOG_DEBUG << "saliency propagation job late:" << lag << "us behind.";
 }
 
 ////////////////////////////////////////////////////////////

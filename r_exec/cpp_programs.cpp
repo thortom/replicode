@@ -31,6 +31,7 @@
 #include "cpp_programs.h"
 
 #include <r_exec/cpp_programs.h>  // for CPPPrograms, CPPPrograms::Program
+#include <common_logger.h>        // for logging
 #include <iostream>               // for operator<<, basic_ostream, cerr, etc
 #include <utility>                // for pair
 
@@ -70,7 +71,7 @@ Controller *CPPPrograms::New(std::string &pgm_name, r_code::View *view)
     if (pgm != nullptr) {
         return pgm(view);
     } else {
-        std::cerr << "c++ program '" << pgm_name << "' could not be found\n";
+        LOG_ERROR << "c++ program '" << pgm_name << "' could not be found\n";
         return nullptr;
     }
 }

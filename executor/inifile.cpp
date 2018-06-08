@@ -9,7 +9,7 @@
 #include <stdexcept>   // for invalid_argument
 #include <string>      // for basic_string, string, operator==, stod, stoi, etc
 
-#include <replicode_common.h>     // for DebugStream, debug
+#include <common_logger.h>        // for logging
 
 static inline std::string trim(std::string string)
 {
@@ -45,7 +45,7 @@ bool IniFile::readFile(std::string filename)
     file.open(exp_res.we_wordv[0]);
 
     if (!file.is_open()) {
-        debug("inifile") << "unable to open file" << filename;
+        LOG_DEBUG << "unable to open file" << filename;
         return 1;
     }
 
@@ -69,7 +69,7 @@ bool IniFile::readFile(std::string filename)
             size_t end = line.find(']');
 
             if (end == std::string::npos) {
-                debug("inifile") << "invalid file, unclosed group at line " << linenum;
+                LOG_DEBUG << "invalid file, unclosed group at line " << linenum;
                 return false;
             }
 
@@ -80,7 +80,7 @@ bool IniFile::readFile(std::string filename)
         size_t nameEnd = line.find('=');
 
         if (nameEnd == std::string::npos) {
-            debug("inifile") << "invalid file, missing = at line " << linenum;
+            LOG_DEBUG << "invalid file, missing = at line " << linenum;
             return false;
         }
 

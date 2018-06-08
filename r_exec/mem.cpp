@@ -50,7 +50,7 @@
 #include <unordered_set>            // for unordered_set, etc
 #include <utility>                  // for pair
 
-#include <replicode_common.h>      // for debug, DebugStream
+#include <common_logger.h>          // for logging
 
 
 namespace r_exec
@@ -58,17 +58,12 @@ namespace r_exec
 
 _Mem::_Mem(): r_code::Mem(), state(NOT_STARTED), deleted(false)
 {
-    std::cout << "_Mem() called";
+    LOG_DEBUG << "_Mem() called";
     new ModelBase();
     objects.reserve(1024);
 }
 
-_Mem::~_Mem()
-{
-    for (std::ostream *stream : debug_streams) {
-        delete stream;
-    }
-}
+_Mem::~_Mem() {}
 
 void _Mem::init(uint64_t base_period,
                 uint64_t reduction_core_count,
@@ -119,22 +114,6 @@ void _Mem::init(uint64_t base_period,
     reduction_job_count = time_job_count = 0;
     reduction_job_avg_latency = _reduction_job_avg_latency = 0;
     time_job_avg_latency = _time_job_avg_latency = 0;
-    uint64_t mask = 1;
-
-    for (auto & stream : debug_streams) {
-        if (traces & mask) {
-            stream = nullptr;
-        } else {
-            stream = new NullOStream();
-        }
-
-        mask <<= 1;
-    }
-}
-
-std::ostream &_Mem::Output(TraceLevel l)
-{
-    return (_Mem::Get()->debug_streams[l] == nullptr ? std::cout : * (_Mem::Get()->debug_streams[l]));
 }
 
 ////////////////////////////////////////////////////////////////
@@ -363,7 +342,7 @@ void _Mem::stop()
     m_stateMutex.lock();
 
     if (state != RUNNING) {
-        ::debug("mem") << "memory asked to stop while not running";
+        LOG_DEBUG << "memory asked to stop while not running";
         return;
     }
 
@@ -380,7 +359,7 @@ void _Mem::stop()
 
     state = STOPPED;
     m_stateMutex.unlock();
-    ::debug("_Mem") << "_stop() waiting for core threads to join...";
+    LOG_DEBUG << "_Mem::_stop() waiting for core threads to join...";
 
     for (i = 0; i < m_coreThreads.size(); ++i) {
         m_coreThreads[i].join();
@@ -391,7 +370,7 @@ void _Mem::stop()
     if (m_coreCount > 0) {
         m_coresRunning.wait(lock);
     }
-    ::debug("_Mem") << "_stop() clearing core threads...";
+    LOG_DEBUG << "_Mem::_stop() clearing core threads...";
 
     m_coreThreads.clear();
 }
@@ -971,11 +950,11 @@ void MemStatic::delete_object(r_code::Code *object)   // called only if the obje
 
 r_comp::Image *MemStatic::get_objects()
 {
-    ::debug("MemStatic") << "get_objects()...";
+    LOG_DEBUG << "MemStatic get_objects()...";
     r_comp::Image *image = new r_comp::Image();
     image->timestamp = Now();
     image->add_objects(objects);
-    ::debug("MemStatic") << "get_objects()...gto 'em";
+    LOG_DEBUG << "MemStatic get_objects()...gto 'em";
     return image;
 }
 

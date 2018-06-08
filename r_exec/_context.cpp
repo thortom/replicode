@@ -35,6 +35,7 @@
 #include <r_exec/_context.h>  // for _Context, _Context::::MKS, etc
 #include <iostream>           // for operator<<, cout, ostream, etc
 #include <vector>             // for allocator, vector
+#include <common_logger.h>    // for logger
 
 
 namespace r_exec
@@ -71,19 +72,19 @@ uint16_t _Context::addCompoundResultPart(Atom a) const   // store result in the 
 
 void _Context::trace() const
 {
-    std::cout << "======== CONTEXT ========\n";
+    LOG_DEBUG << "======== CONTEXT ========\n";
 
     switch (data) {
     case UNDEFINED:
-        std::cout << "undefined\n";
+        LOG_DEBUG << "undefined\n";
         return;
 
     case MKS:
-        std::cout << "--> mks\n";
+        LOG_DEBUG << "--> mks\n";
         return;
 
     case VWS:
-        std::cout << "--> vws\n";
+        LOG_DEBUG << "--> vws\n";
         return;
 
     default:
@@ -92,12 +93,12 @@ void _Context::trace() const
 
     for (uint16_t i = 0; i < get_object_code_size(); ++i) {
         if (index == i) {
-            std::cout << ">>";
+            LOG_DEBUG << ">>";
         }
 
-        std::cout << i << "\t";
+        LOG_DEBUG << i << "\t";
         code[i].trace();
-        std::cout << std::endl;
+        LOG_DEBUG << std::endl;
     }
 }
 }

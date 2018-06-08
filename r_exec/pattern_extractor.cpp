@@ -53,7 +53,6 @@
 #include <vector>                      // for vector, etc
 
 #include <replicode_common.h>          // for P, _Object
-#include <replicode_common.h>         // for DebugStream
 
 namespace r_exec
 {
@@ -103,7 +102,7 @@ bool TPX::take_input(View *input, _Fact *abstracted_input, BindingMap *bm)
 
 void TPX::signal(View *input) const   // input->object is f->success or|f->success.
 {
-    //std::cout<<Utils::RelativeTime(Now())<<" "<<input->object->get_reference(0)->get_reference(1)->get_oid()<<": end of focus["<<target->get_oid()<<"]\n";
+    //std::cout<<Utils::Timestamp(Now())<<" "<<input->object->get_reference(0)->get_reference(1)->get_oid()<<": end of focus["<<target->get_oid()<<"]\n";
 }
 
 void TPX::ack_pred_success(_Fact *predicted_f)
@@ -116,7 +115,7 @@ bool TPX::filter(View *input, _Fact *abstracted_input, BindingMap *bm)
         return false;
     }
 
-    //std::cout<<Utils::RelativeTime(Now())<<" tpx ["<<target->get_oid()<<"] <- "<<input->object->get_oid();
+    //std::cout<<Utils::Timestamp(Now())<<" tpx ["<<target->get_oid()<<"] <- "<<input->object->get_oid();
     if (target_bindings->intersect(bm)) { //std::cout<<" lvl0"<<std::endl;
         return true;
     }
@@ -141,15 +140,15 @@ bool TPX::filter(View *input, _Fact *abstracted_input, BindingMap *bm)
         uint64_t now = Now();
 
         for (i = cache.begin(now); i != cache.end(); ++i) {
-            if (i->injected) { //std::cout<<" ?"<<(*i).input->object->get_oid()<<" ("<<Utils::RelativeTime(i->ijt)<<") skip\n";
+            if (i->injected) { //std::cout<<" ?"<<(*i).input->object->get_oid()<<" ("<<Utils::Timestamp(i->ijt)<<") skip\n";
                 continue;
             }
 
             if (_bm->intersect(i->bindings)) {
                 i->injected = true;
                 auto_focus->inject_input(i->input, i->abstraction, i->bindings);
-                //std::cout<<" ?"<<(*i).input->object->get_oid()<<" ("<<Utils::RelativeTime(i->ijt)<<") success\n";
-            }//else std::cout<<" ?"<<(*i).input->object->get_oid()<<" ("<<Utils::RelativeTime(i->ijt)<<") failure\n";
+                //std::cout<<" ?"<<(*i).input->object->get_oid()<<" ("<<Utils::Timestamp(i->ijt)<<") success\n";
+            }//else std::cout<<" ?"<<(*i).input->object->get_oid()<<" ("<<Utils::Timestamp(i->ijt)<<") failure\n";
         }
 
         return true;
@@ -170,7 +169,7 @@ bool TPX::filter(View *input, _Fact *abstracted_input, BindingMap *bm)
         }
 
         cache.push_back(ci);
-        //std::cout<<" cached"<<" ("<<Utils::RelativeTime(input->get_ijt())<<")\n";
+        //std::cout<<" cached"<<" ("<<Utils::Timestamp(input->get_ijt())<<")\n";
         return false;
     }
 }
@@ -436,7 +435,7 @@ void _TPX::inject_hlps(uint64_t analysis_starting_time)
         uint64_t d = analysis_end - analysis_starting_time;
         char _timing[255];
         snprintf(_timing, 255, "%lu", d);
-        header = DebugStream::timestamp(Now() - Utils::GetTimeReference());
+        header = Utils::Timestamp(Now());
         std::string s0 = (" > ");
         s0 += get_header() + std::string(":production [");
         std::string timing(_timing);
@@ -775,6 +774,7 @@ void CTPX::store_input(r_exec::View *input)
 void CTPX::signal(r_exec::View *input)
 {
     View *_view = new View(input); // controller not copied.
+    LOG_DEBUG << "code[0].getDescriptor(): " << std::hex << +_view->code(0).getDescriptor() << std::dec << "\n";
     ReductionJob<CTPX> *j = new ReductionJob<CTPX>(_view, this); // holds a reference to this.
     _Mem::Get()->pushReductionJob(j);
 }
@@ -957,7 +957,7 @@ bool CTPX::build_mdl(_Fact *cause, _Fact *consequent, GuardBuilder *guard_builde
     P<Code> m0 = build_mdl_head(bm, 3, cause, consequent, write_index);
     guard_builder->build(m0, nullptr, cause, write_index);
     build_mdl_tail(m0, write_index);
-    //std::cout<<Utils::RelativeTime(Now())<<" found --------------------- M0\n";
+    //std::cout<<Utils::Timestamp(Now())<<" found --------------------- M0\n";
     return build_requirement(bm, m0, period); // existence checks performed there.
 }
 
@@ -982,7 +982,7 @@ bool CTPX::build_requirement(HLPBindingMap *bm, Code *m0, uint64_t period)   // 
     Code *new_cst;
     _Fact *f_icst = find_f_icst(target, premise_index, new_cst);
 
-    if (f_icst == nullptr) { //std::cout<<Utils::RelativeTime(Now())<<" failed xxxxxxxxx M1 / 0\n";
+    if (f_icst == nullptr) { //std::cout<<Utils::Timestamp(Now())<<" failed xxxxxxxxx M1 / 0\n";
         return false;
     }
 
@@ -1025,7 +1025,7 @@ bool CTPX::build_requirement(HLPBindingMap *bm, Code *m0, uint64_t period)   // 
         mdls.push_back(m1);
     } // if m1 alrady exists, new_cst==NULL.
 
-    //std::cout<<Utils::RelativeTime(Now()<<" found --------------------- M1\n";
+    //std::cout<<Utils::Timestamp(Now()<<" found --------------------- M1\n";
     return true;
 }
 

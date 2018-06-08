@@ -525,7 +525,7 @@ uint64_t _Fact::get_before() const
 
 void _Fact::trace() const
 {
-    std::cout << "<" << get_oid() << " " << Utils::RelativeTime(get_after()) << " " << Utils::RelativeTime(get_before()) << ">" << std::endl;
+    LOG_DEBUG << "<" << get_oid() << " " << Utils::Timestamp(get_after()) << " " << Utils::Timestamp(get_before()) << ">" << std::endl;
 }
 
 ////////////////////////////////////////////////////////////////

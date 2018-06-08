@@ -32,7 +32,7 @@
 #define settings_h
 
 #include "inifile.h"
-#include <replicode_common.h>
+#include <common_logger.h>
 #include <thread>
 
 class Settings
@@ -68,10 +68,12 @@ public:
     uint64_t goal_pred_success_resilience;
     uint64_t debug_windows;
     uint64_t trace_levels;
+    uint64_t save_interval;
     bool get_objects;
     bool decompile_objects;
     bool decompile_to_file;
     std::string decompilation_file_path;
+    std::string log_folder;
     bool ignore_named_objects;
     bool write_objects;
     std::string objects_path;
@@ -92,15 +94,15 @@ public:
         utils::IniFile settingsFile;
 
         if (!settingsFile.readFile(file_name)) {
-            std::cerr << "Unable to load settings, using defaults";
+            LOG_ERROR << "Unable to load settings, using defaults";
         }
 
-        ::debug("settings") << "Loading settings file" << file_name;
+        LOG_DEBUG << "Loading settings file" << file_name;
         usr_operator_path = settingsFile.getString("Load", "usr_operator_path", "../build/usr_operators/libusr_operators.so");
         usr_class_path = settingsFile.getString("Load", "usr_class_path", "./V1.2/user.classes.replicode");
         source_file_name = settingsFile.getString("Load", "source_file_name",  "./V1.2/test.2.replicode");
         unsigned int cores = std::thread::hardware_concurrency();
-        ::debug("settings") << "number of CPU cores available:" << cores;
+        LOG_DEBUG << "number of CPU cores available:" << cores;
         base_period = settingsFile.getInt("Init", "base_period", 50000);
         reduction_core_count = settingsFile.getInt("Init", "reduction_core_count", (cores * 3) / 4 + 1);
         time_core_count = settingsFile.getInt("Init", "time_core_count", (cores - ((cores * 3) / 4)) + 1);
@@ -119,6 +121,8 @@ public:
         this->debug = settingsFile.getBool("Debug", "debug", true);
         debug_windows = settingsFile.getInt("Debug", "debug_windows", 1);
         trace_levels = std::stoi(settingsFile.getString("Debug", "trace_levels", "CC"), nullptr, 16);
+        save_interval = settingsFile.getInt("Debug", "save_interval", 5000);
+        log_folder = settingsFile.getString("Debug", "log_folder", "../Test/logs");
         ntf_mk_resilience = settingsFile.getInt("Resilience",  "ntf_mk_resilience", 1);
         goal_pred_success_resilience = settingsFile.getInt("Resilience", "goal_pred_success_resilience", 1000);
         get_objects = settingsFile.getBool("Objects", "get_objects", false);

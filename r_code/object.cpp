@@ -33,6 +33,7 @@
 #include <r_code/object.h>  // for SysObject, SysView, Code, View, Mem, etc
 #include <cstdint>          // for uint32_t
 #include <iostream>         // for operator<<, cout, ostream, endl, etc
+#include <common_logger.h>  // for logger
 
 
 namespace r_code
@@ -92,19 +93,19 @@ size_t SysView::get_size() const
 
 void SysView::trace()
 {
-    std::cout << " code size: " << code.size() << std::endl;
-    std::cout << " reference set size: " << references.size() << std::endl;
-    std::cout << "---code---" << std::endl;
+    LOG_DEBUG << " code size: " << code.size() << std::endl;
+    LOG_DEBUG << " reference set size: " << references.size() << std::endl;
+    LOG_DEBUG << "---code---" << std::endl;
 
     for (const Atom atom : code) {
         atom.trace();
-        std::cout << std::endl;
+        LOG_DEBUG << std::endl;
     }
 
-    std::cout << "---reference set---" << std::endl;
+    LOG_DEBUG << "---reference set---" << std::endl;
 
     for (uint32_t reference : references) {
-        std::cout << reference << std::endl;
+        LOG_DEBUG << reference << std::endl;
     }
 }
 
@@ -225,51 +226,51 @@ size_t SysObject::get_size()
 
 void SysObject::trace()
 {
-    std::cout << "\n---object---\n";
-    std::cout << oid << std::endl;
-    std::cout << "code size: " << code.size() << std::endl;
-    std::cout << "reference set size: " << references.size() << std::endl;
-    std::cout << "marker set size: " << markers.size() << std::endl;
-    std::cout << "view set size: " << views.size() << std::endl;
-    std::cout << "\n---code---\n";
+    LOG_DEBUG << "\n---object---\n";
+    LOG_DEBUG << oid << std::endl;
+    LOG_DEBUG << "code size: " << code.size() << std::endl;
+    LOG_DEBUG << "reference set size: " << references.size() << std::endl;
+    LOG_DEBUG << "marker set size: " << markers.size() << std::endl;
+    LOG_DEBUG << "view set size: " << views.size() << std::endl;
+    LOG_DEBUG << "\n---code---\n";
     size_t i;
 
     for (i = 0; i < code.size(); ++i) {
-        std::cout << i << " ";
+        LOG_DEBUG << i << " ";
         code[i].trace();
-        std::cout << std::endl;
+        LOG_DEBUG << std::endl;
     }
 
-    std::cout << "\n---reference set---\n";
+    LOG_DEBUG << "\n---reference set---\n";
 
     for (i = 0; i < references.size(); ++i) {
-        std::cout << i << " " << references[i] << std::endl;
+        LOG_DEBUG << i << " " << references[i] << std::endl;
     }
 
-    std::cout << "\n---marker set---\n";
+    LOG_DEBUG << "\n---marker set---\n";
 
     for (i = 0; i < markers.size(); ++i) {
-        std::cout << i << " " << markers[i] << std::endl;
+        LOG_DEBUG << i << " " << markers[i] << std::endl;
     }
 
-    std::cout << "\n---view set---\n";
+    LOG_DEBUG << "\n---view set---\n";
 
     for (size_t k = 0; k < views.size(); ++k) {
-        std::cout << "view[" << k << "]" << std::endl;
-        std::cout << "reference set size: " << views[k]->references.size() << std::endl;
-        std::cout << "-code-" << std::endl;
+        LOG_DEBUG << "view[" << k << "]" << std::endl;
+        LOG_DEBUG << "reference set size: " << views[k]->references.size() << std::endl;
+        LOG_DEBUG << "-code-" << std::endl;
         size_t j;
 
         for (j = 0; j < views[k]->code.size(); ++i, ++j) {
-            std::cout << j << " ";
+            LOG_DEBUG << j << " ";
             views[k]->code[j].trace();
-            std::cout << std::endl;
+            LOG_DEBUG << std::endl;
         }
 
-        std::cout << "-reference set-" << std::endl;
+        LOG_DEBUG << "-reference set-" << std::endl;
 
         for (j = 0; j < views[k]->references.size(); ++i, ++j) {
-            std::cout << j << " " << views[k]->references[j] << std::endl;
+            LOG_DEBUG << j << " " << views[k]->references[j] << std::endl;
         }
     }
 }
@@ -280,7 +281,7 @@ Mem *Mem::Singleton = nullptr;
 
 Mem::Mem()
 {
-    std::cout << "Mem() called, Singleton @ " << this << "\n";
+    LOG_DEBUG << "Mem() called, Singleton @ " << this << "\n";
     Singleton = this;
 }
 

@@ -38,7 +38,7 @@
 #include <stdlib.h>                 // for exit
 #include <cstdint>                  // for uint16_t, uintptr_t, int16_t, etc
 
-#include <replicode_common.h>      // for debug, DebugStream
+#include <common_logger.h>          // for logging
 
 
 using namespace r_code;
@@ -482,7 +482,7 @@ void IPGMContext::getMember(void *&object, uint64_t &view_oid, ObjectType &objec
     case Atom::S_SET: // views are always copied; set the object to the view's group on which to perform an operation for the view's oid.
         if (c.data == VALUE_ARRAY) {
             // FIXME: I'm not sure how this could ever have worked
-            debug("IPGMContext") << "This will never work, aborting";
+            LOG_DEBUG << "IPGMContext This will never work, aborting";
             c[VIEW_CODE_MAX_SIZE].trace();
             exit(0);
             object = (Group *)c[VIEW_CODE_MAX_SIZE].atom; // first reference of grp in a view stored in athe value array.

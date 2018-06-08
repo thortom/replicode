@@ -83,6 +83,7 @@ failure_run_ipgm:(ipgm failure_run_pgm |[] RUN_ALWAYS 0us VOLATILE SILENT 1) [[S
 
 ; input generators.
 
+; Initialization of the ball position and speed
 start:(pgm |[] |[] |[] []
    (inj []
       p:(mk.val b position_y 0 1)
@@ -104,6 +105,7 @@ start:(pgm |[] |[] |[] []
 
 istart:(ipgm start |[] RUN_ONCE sampling_period VOLATILE SILENT 1) [[SYNC_ONCE now 0 forever stdin nil 1]]
 
+; Update program for the postion and speed of the ball
 pgm0:(pgm |[] []
    (ptn f:(fact (mk.val b position_y py: :) after: before: ::) |[])
    (ptn (fact (mk.val b speed_y sy: :) ::) |[])

@@ -33,9 +33,8 @@
 
 #include <stdint.h>             // for uint64_t, int64_t
 
-#include <replicode_common.h>   // for P, _Object
-#include <replicode_common.h>  // for DebugStream, debug
-#include <replicode_common.h>    // for REPLICODE_EXPORT
+#include <replicode_common.h>   // for P, _Object, REPLICODE_EXPORT
+#include <common_logger.h>      // for logging
 
 namespace r_code {
 class Code;
@@ -166,7 +165,7 @@ public:
     }
     void report(int64_t lag) const
     {
-        debug("monitoring job") << "late:" << lag << "us behind.";
+        LOG_DEBUG << "monitoring job late:" << lag << "us behind.";
     }
 };
 
