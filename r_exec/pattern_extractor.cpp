@@ -427,7 +427,7 @@ void _TPX::inject_hlps(uint64_t analysis_starting_time)
             tmp.push_back((Code *)i->input);
         }
 
-        std::string header("> from buffer -------------------\n\n");
+        std::string header("> from buffer -------------------");
         P<TDecompiler> td = new TDecompiler(1, header, _Mem::Get()->metadata);
         td->add_objects(tmp);
         td->runDecompiler();
@@ -439,7 +439,7 @@ void _TPX::inject_hlps(uint64_t analysis_starting_time)
         std::string s0 = (" > ");
         s0 += get_header() + std::string(":production [");
         std::string timing(_timing);
-        std::string s1("us] -------------------\n\n");
+        std::string s1("us] -------------------");
         header += s0 + timing + s1;
         td = new TDecompiler(1, header, _Mem::Get()->metadata);
         td->add_objects(mdls);
@@ -774,7 +774,7 @@ void CTPX::store_input(r_exec::View *input)
 void CTPX::signal(r_exec::View *input)
 {
     View *_view = new View(input); // controller not copied.
-    LOG_DEBUG << "code[0].getDescriptor(): " << std::hex << +_view->code(0).getDescriptor() << std::dec << "\n";
+    LOG_DEBUG << "code[0].getDescriptor(): " << std::hex << +_view->code(0).getDescriptor() << std::dec;
     ReductionJob<CTPX> *j = new ReductionJob<CTPX>(_view, this); // holds a reference to this.
     _Mem::Get()->pushReductionJob(j);
 }

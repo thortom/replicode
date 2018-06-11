@@ -1022,11 +1022,11 @@ bool Group::load(View *view, Code *object)
         ipgm_views[view->get_oid()] = view;
         std::string str = Utils::GetString<Code>(view->object, ICPP_PGM_NAME);
 
-        LOG_DEBUG << "Loading ICCP_PGM_NME" << str << "\n";
-        LOG_DEBUG << "before -   r_exec::_Mem::Get() = " << r_exec::_Mem::Get() << "\n";
+        LOG_DEBUG << "Loading ICCP_PGM_NME" << str;
+        LOG_DEBUG << "before -   r_exec::_Mem::Get() = " << r_exec::_Mem::Get();
 
         Controller *c = CPPPrograms::New(str, view); // now will be added to the deadline at start time.
-        LOG_DEBUG << "after -    r_exec::_Mem::Get() = " << r_exec::_Mem::Get() << "\n";
+        LOG_DEBUG << "after -    r_exec::_Mem::Get() = " << r_exec::_Mem::Get();
 
         if (!c) {
             return false;
@@ -1098,9 +1098,9 @@ void Group::update(uint64_t planned_time)
 
     uint64_t now = Now();
     //if(get_secondary_group()!=NULL)
-    // LOG_DEBUG<<Utils::Timestamp(Now())<<" UPR\n";
+    // LOG_DEBUG<<Utils::Timestamp(Now())<<" UPR";
     //if(this==_Mem::Get()->get_stdin())
-    // LOG_DEBUG<<Utils::Timestamp(Now())<<" ----------------------------------------------------------------\n";
+    // LOG_DEBUG<<Utils::Timestamp(Now())<<" ----------------------------------------------------------------";
     newly_salient_views.clear();
 
     // execute pending operations.
@@ -1197,7 +1197,7 @@ void Group::update(uint64_t planned_time)
 
     //if(get_secondary_group()!=NULL)
     //if(this==_Mem::Get()->get_stdin())
-    // LOG_DEBUG<<Utils::Timestamp(Now())<<" ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n";
+    // LOG_DEBUG<<Utils::Timestamp(Now())<<" ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++";
 }
 
 void Group::_update_saliency(GroupState *state, View *view)
@@ -1529,7 +1529,7 @@ void Group::inject(View *view)
         break;
 
     case Atom::COMPOSITE_STATE: {
-        LOG_TRACE << Utils::Timestamp(Now()) << " cst " << view->object->get_oid() << " injected" << std::endl;
+        LOG_TRACE << Utils::Timestamp(Now()) << " cst " << view->object->get_oid() << " injected";
         ipgm_views[view->get_oid()] = view;
         CSTController *c = new CSTController(view);
         view->controller = c;
@@ -1548,7 +1548,7 @@ void Group::inject(View *view)
     }
 
     case Atom::MODEL: {
-        LOG_TRACE << Utils::Timestamp(Now()) << " mdl " << view->object->get_oid() << " injected" << std::endl;
+        LOG_TRACE << Utils::Timestamp(Now()) << " mdl " << view->object->get_oid() << " injected";
         ipgm_views[view->get_oid()] = view;
         bool inject_in_secondary_group;
         MDLController *c = MDLController::New(view, inject_in_secondary_group);

@@ -96,7 +96,7 @@ public:
 
         if (!library) {
             DWORD error = GetLastError();
-            LOG_ERROR << "> Error: unable to load shared library " << fileName << " :" << error << std::endl;
+            LOG_ERROR << "> Error: unable to load shared library " << fileName << " :" << error;
             return NULL;
         }
 
@@ -104,7 +104,7 @@ public:
         library = dlopen(fileName, RTLD_NOW | RTLD_GLOBAL);
 
         if (!library) {
-            LOG_ERROR << "> Error: unable to load shared library " << fileName << " :" << dlerror() << std::endl;
+            LOG_ERROR << "> Error: unable to load shared library " << fileName << " :" << dlerror();
             return nullptr;
         }
 
@@ -122,7 +122,7 @@ public:
 
             if (!function) {
                 DWORD error = GetLastError();
-                LOG_ERROR << "GetProcAddress > Error: " << error << std::endl;
+                LOG_ERROR << "GetProcAddress > Error: " << error;
             }
         }
 
@@ -132,10 +132,10 @@ public:
             function = T(dlsym(library, functionName));
 
             if (!function) {
-                LOG_ERROR << "> Error: unable to find symbol " << functionName << " :" << dlerror() << std::endl;
+                LOG_ERROR << "> Error: unable to find symbol " << functionName << " :" << dlerror();
             } else
             {
-                LOG_INFO << "> Found symbol " << functionName << std::endl;
+                LOG_INFO << "> Found symbol " << functionName;
             }
         }
 
@@ -186,7 +186,7 @@ bool Compile(const char* filename,
     r_comp::Compiler compiler(image, metadata);
 
     if (!compiler.compile(root, false)) {
-        LOG_ERROR << "! Compilation failed: " << compiler.getError() << std::endl;
+        LOG_ERROR << "! Compilation failed: " << compiler.getError();
         error = compiler.getError();
         return false;
     }
@@ -508,7 +508,7 @@ bool Init(const char *user_operator_library_path,
         std::unordered_map<std::string, uint16_t>::iterator it = opcodes.find(op_name);
 
         if (it == opcodes.end()) {
-            LOG_ERROR << "Operator " << op_name << " is undefined" << std::endl;
+            LOG_ERROR << "Operator " << op_name << " is undefined";
             exit(-1);
         }
 
@@ -598,7 +598,7 @@ bool Init(const char *user_operator_library_path,
     std::string error;
 
     if (!Compile(seed_path, error, image, metadata, true)) {
-        LOG_ERROR << error << std::endl;
+        LOG_ERROR << error;
         return false;
     }
 

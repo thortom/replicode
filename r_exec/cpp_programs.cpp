@@ -71,7 +71,7 @@ Controller *CPPPrograms::New(std::string &pgm_name, r_code::View *view)
     if (pgm != nullptr) {
         return pgm(view);
     } else {
-        LOG_ERROR << "c++ program '" << pgm_name << "' could not be found\n";
+        LOG_ERROR << "c++ program '" << pgm_name << "' could not be found";
         return nullptr;
     }
 }

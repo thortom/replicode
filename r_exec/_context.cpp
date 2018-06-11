@@ -72,19 +72,19 @@ uint16_t _Context::addCompoundResultPart(Atom a) const   // store result in the 
 
 void _Context::trace() const
 {
-    LOG_DEBUG << "======== CONTEXT ========\n";
+    LOG_TRACE << "======== CONTEXT ========";
 
     switch (data) {
     case UNDEFINED:
-        LOG_DEBUG << "undefined\n";
+        LOG_TRACE << "undefined";
         return;
 
     case MKS:
-        LOG_DEBUG << "--> mks\n";
+        LOG_TRACE << "--> mks";
         return;
 
     case VWS:
-        LOG_DEBUG << "--> vws\n";
+        LOG_TRACE << "--> vws";
         return;
 
     default:
@@ -92,13 +92,14 @@ void _Context::trace() const
     }
 
     for (uint16_t i = 0; i < get_object_code_size(); ++i) {
+        std::string trace = "";
         if (index == i) {
-            LOG_DEBUG << ">>";
+            trace += ">>";
         }
 
-        LOG_DEBUG << i << "\t";
+        trace = trace + std::to_string(i) + "\t";
         code[i].trace();
-        LOG_DEBUG << std::endl;
+        LOG_TRACE << trace;
     }
 }
 }

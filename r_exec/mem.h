@@ -272,7 +272,7 @@ public:
     }
     uint64_t get_tpx_time_horizon() const
     {
-        LOG_DEBUG << __FUNCTION__ << " - r_exec::_Mem:Get() = " << r_exec::_Mem::Get() << "\n";
+        LOG_DEBUG << __FUNCTION__ << " - r_exec::_Mem:Get() = " << r_exec::_Mem::Get();
         return tpx_time_horizon;
     }
     uint64_t get_primary_thz() const

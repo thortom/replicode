@@ -636,12 +636,11 @@ void Atom::write_indents() const
 
 void Atom::Trace(Atom *base, uint16_t count)
 {
-    LOG_TRACE << "--------\n";
-
+    std::string trace = "--------\n";
     for (uint16_t i = 0; i < count; ++i) {
-        LOG_TRACE << i << "\t";
+        trace = trace + std::to_string(i) + "\t";
         base[i].trace();
-        LOG_TRACE << std::endl;
     }
+    LOG_TRACE << trace;
 }
 }

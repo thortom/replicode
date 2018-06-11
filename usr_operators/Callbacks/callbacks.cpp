@@ -39,7 +39,7 @@
 
 bool print(uint64_t t, bool suspended, const char *msg, uint8_t object_count, r_code::Code **objects)   // return true to resume the executive (applies when called from a suspend call, i.e. suspended==true).
 {
-    LOG_DEBUG << msg << std::endl;
+    LOG_DEBUG << msg;
 
     for (uint8_t i = 0; i < object_count; ++i) {
         objects[i]->trace();

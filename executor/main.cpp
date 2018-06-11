@@ -281,7 +281,7 @@ int main(int argc, char **argv)
     std::string error;
 
     if (!r_exec::Compile(settings.source_file_name.c_str(), error, &seed, &metadata, false)) {
-        LOG_ERROR << " <- " << error << std::endl;
+        LOG_ERROR << " <- " << error;
         return 3;
     }
 

@@ -46,7 +46,7 @@ template<class I> Image<I> *Image<I>::Build(uint64_t timestamp, size_t map_size,
 template<class I> Image<I> *Image<I>::Read(std::ifstream &stream)
 {
     if (!stream.is_open()) {
-        LOG_ERROR << "Can't read from non-open file" << std::endl;
+        LOG_ERROR << "Can't read from non-open file";
         return nullptr;
     }
 
@@ -166,7 +166,7 @@ template<class I> void Image<I>::trace() const
             LOG_DEBUG << "image trace code " << i << this->data(i);
         }
 
-        LOG_DEBUG << "---view set---\n";
+        LOG_DEBUG << "---view set---";
 
         for(size_t k = 0; k < object_view_set_size; ++k) {
             size_t view_code_size = this->data(i);
@@ -174,7 +174,7 @@ template<class I> void Image<I>::trace() const
             LOG_DEBUG << "image trace view " << "view" << k << "";
             LOG_DEBUG << "image trace view " << i++ << "code size:" << view_code_size;
             LOG_DEBUG << "image trace view " << i++ << "reference set size:" << view_reference_set_size;
-            LOG_DEBUG << "---code---\n";
+            LOG_DEBUG << "---code---";
             size_t l;
 
             for(l = 0; l < view_code_size; ++i, ++l) {

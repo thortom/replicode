@@ -121,7 +121,6 @@ void CSTOverlay::inject_production()
                 LOG_TRACE << " " << input->get_oid();
             }
 
-            LOG_TRACE << std::endl;
         } else {
             ((CSTController *)controller)->inject_icst(f_icst, lowest_cfd, time_to_live); // inject f->icst in the primary and secondary groups, and in the output groups.
             LOG_TRACE << Utils::Timestamp(Now()) << "				" << f_icst->get_oid() << " icst[" << controller->getObject()->get_oid() << "][";
@@ -130,7 +129,7 @@ void CSTOverlay::inject_production()
                 LOG_TRACE << " " << input->get_oid();
             }
 
-            LOG_TRACE << "]" << std::endl;
+            LOG_TRACE << "]";
         }
     } else { // there are simulations; the production is therefore a prediction; add the simulations to the latter.
         Pred *prediction = new Pred(f_icst, 1);
@@ -323,7 +322,7 @@ void CSTController::take_input(r_exec::View *input)
 
     if (input->object->code(0).asOpcode() == Opcodes::Fact ||
         input->object->code(0).asOpcode() == Opcodes::AntiFact) { // discard everything but facts and |facts.
-        LOG_TRACE << Utils::Timestamp(Now()) << " cst " << getObject()->get_oid() << " <- " << input->object->get_oid() << std::endl;
+        LOG_TRACE << Utils::Timestamp(Now()) << " cst " << getObject()->get_oid() << " <- " << input->object->get_oid();
         Controller::__take_input<CSTController>(input);
     }
 }
