@@ -37,6 +37,8 @@
 #include <string>             // for string
 #include <unordered_map>      // for unordered_map
 
+#include <common_logger.h>    // for logging
+
 
 uint16_t Vec3Opcode;
 
@@ -125,6 +127,20 @@ bool dis(const r_exec::Context &context, uint16_t &index)
 
     index = context.setAtomicResult(Atom::Nil());
     return false;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+bool test_device(const r_exec::Context &context, uint16_t &index)
+{
+    r_exec::Context lhs = *context.getChild(1);
+    r_exec::Context rhs = *context.getChild(2);
+
+    lhs.trace();
+    rhs.trace();
+    std::cout << "Stuff in test_device\n";
+    LOG_DEBUG << "Debug logging in test_device";
+    return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

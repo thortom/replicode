@@ -585,7 +585,7 @@ bool Init(const char *user_operator_library_path,
         Callbacks::Register(_callback_name, callback);
     }
 
-    LOG_DEBUG << "init user-defined operator library" << user_operator_library_path << "loaded";
+    LOG_DEBUG << "init user-defined operator library" << user_operator_library_path << " loaded";
     return true;
 }
 

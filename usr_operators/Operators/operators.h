@@ -45,6 +45,7 @@ extern "C" {
     bool REPLICODE_EXPORT sub(const r_exec::Context &context, uint16_t &index);
     bool REPLICODE_EXPORT mul(const r_exec::Context &context, uint16_t &index);
     bool REPLICODE_EXPORT dis(const r_exec::Context &context, uint16_t &index);
+    bool REPLICODE_EXPORT test_device(const r_exec::Context &context, uint16_t &index);
 }
 
 class Operators

@@ -250,6 +250,9 @@ void get_models(r_exec::_Mem *mem, Settings& settings, Decompiler *decompiler, u
 
 int main(int argc, char **argv)
 {
+    LOG_INFO << "####################################################################";
+    LOG_INFO << "####################################################################";
+    LOG_INFO << "########################### Starting... ############################";
     Settings settings;
 
     // First try to load local config, otherwise user config, otherwise just
@@ -345,12 +348,20 @@ int main(int argc, char **argv)
     }
 
     uint64_t starting_time = mem->start();
-    LOG_INFO << "running for" << settings.run_time << "ms";
+    LOG_INFO << "running for " << settings.run_time << "ms";
     while (now() < (settings.run_time*1000 + starting_time))
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(settings.save_interval));
-        get_models(mem, settings, &decompiler, starting_time, now);
+        // get_models(mem, settings, &decompiler, starting_time, now);
     }
+    /*
+    std::this_thread::sleep_for(std::chrono::milliseconds(settings.run_time/2));
+    test_many_injections(mem,
+    argc > 2 ? atoi(argv[2]) : 100, // sampling period in ms
+    argc > 3 ? atoi(argv[3]) : 60, // number of batches
+    argc > 4 ? atoi(argv[4]) : 66); // number of objects per batch
+    std::this_thread::sleep_for(std::chrono::milliseconds(settings.run_time/2));
+    */
     LOG_INFO << "shutting rMem down...";
     mem->stop();
 

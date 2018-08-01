@@ -49,7 +49,7 @@ TimeJob::TimeJob(uint64_t target_time): _Object(), target_time(target_time)
 
 void TimeJob::report(int64_t lag) const
 {
-    LOG_DEBUG << "time job late generic:" << lag << "us behind.";
+    LOG_DEBUG << "time job late generic: " << lag << "us behind.";
 }
 
 ////////////////////////////////////////////////////////////
@@ -119,7 +119,7 @@ bool InputLessPGMSignalingJob::update()
 
 void InputLessPGMSignalingJob::report(int64_t lag) const
 {
-    LOG_DEBUG << "input-less program signaling job late:" << lag << "us behind.";
+    LOG_DEBUG << "input-less program signaling job late: " << lag << "us behind.";
 }
 
 ////////////////////////////////////////////////////////////

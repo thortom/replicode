@@ -1194,7 +1194,7 @@ void TopLevelMDLController::abduce_lhs(HLPBindingMap *bm,
     }
 
     add_g_monitor(new GMonitor(this, bm, deadline, now + sim_thz, f_sub_goal, f_imdl, evidence));
-    LOG_TRACE << Utils::Timestamp(Now()) << "				mdl " << getObject()->get_oid() << " -> " << f_sub_goal->get_oid() << " goal[" << Utils::Timestamp(sub_goal_target->get_after()) << "," << Utils::Timestamp(sub_goal_target->get_before()) << "[";
+    LOG_TRACE << Utils::Timestamp(Now()) << "mdl " << getObject()->get_oid() << " -> " << f_sub_goal->get_oid() << " goal[" << Utils::Timestamp(sub_goal_target->get_after()) << "," << Utils::Timestamp(sub_goal_target->get_before()) << "[";
 }
 
 void TopLevelMDLController::predict(HLPBindingMap *bm, _Fact *input, Fact *f_imdl, bool chaining_was_allowed, RequirementsPair &r_p, Fact *ground)   // no prediction here.

@@ -47,7 +47,7 @@ namespace r_exec
 
 PASTController::PASTController(AutoFocusController *auto_focus, View *target): ASTController<PASTController>(auto_focus, target)
 {
-    //std::cout<<Utils::Timestamp(Now())<<" created TPX PERIODIC"<<std::endl;
+    LOG_DEBUG <<Utils::Timestamp(Now())<<" created TPX PERIODIC";
 }
 
 PASTController::~PASTController()

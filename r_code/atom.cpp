@@ -606,13 +606,10 @@ void Atom::trace() const
             std::string s;
             char *content = (char *)&atom;
 
-            for (uint8_t i = 0; i < 4; ++i) {
-                if (Char_count-- > 0) {
-                    s += content[i];
-                } else {
-                    break;
-                }
+            for (uint8_t i = 0; i < Char_count; ++i) {
+                s += content[i];
             }
+            Char_count = 0;
 
             LOG_TRACE << s.c_str();
         } else if (isFloat()) {
@@ -629,18 +626,16 @@ void Atom::trace() const
 void Atom::write_indents() const
 {
     if (Members_to_go) {
-        LOG_TRACE << "   ";
         --Members_to_go;
     }
 }
 
 void Atom::Trace(Atom *base, uint16_t count)
 {
-    std::string trace = "--------\n";
+    LOG_TRACE << "--------";
+    LOG_TRACE << "Atom base size: " << count;
     for (uint16_t i = 0; i < count; ++i) {
-        trace = trace + std::to_string(i) + "\t";
         base[i].trace();
     }
-    LOG_TRACE << trace;
 }
 }

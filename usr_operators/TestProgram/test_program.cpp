@@ -36,6 +36,7 @@
 #include <r_exec/overlay.h>         // for Controller
 #include <stdint.h>                 // for uint16_t
 #include <iostream>                 // for operator<<, basic_ostream, etc
+#include <common_logger.h>          // for logging
 
 namespace r_exec {
 class View;
@@ -56,8 +57,10 @@ public:
         uint16_t arg_set_index = getObject()->code(ICPP_PGM_ARGS).asIndex();
         uint16_t arg_count = getObject()->code(arg_set_index).getAtomCount();
 
+        std::cout << "std::cout: Running the test_program";
+        LOG_DEBUG << "Running the test_program";
         if (arg_count != 2) {
-            std::cerr << "test_program error: expected 2 arguments, got " << arg_count << std::endl;
+            LOG_ERROR << "test_program error: expected 2 arguments, got " << arg_count;
             return;
         }
 
@@ -78,7 +81,7 @@ public:
     {
         // Inputs are all types of objects - salient or that have become salient depending on their view's sync member.
         // Manual filtering may be needed instead of pattern-matching.
-        //input->object->trace();
+        getObject()->trace();
     }
 };
 

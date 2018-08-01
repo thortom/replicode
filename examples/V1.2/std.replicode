@@ -94,7 +94,7 @@
 ; mapping devices -> r-atoms.
 !def exe 0xA1000000; the executive.
 
-; mapping device functions -> r-atoms.
+; mapping device functions -> r-atoms. ; These functions need special care (specific logic in e.g. in pgm_overlay.cpp)
 !dfn (_inj : :)
 !dfn (_eje : : :nid)
 !dfn (_mod : :nb)

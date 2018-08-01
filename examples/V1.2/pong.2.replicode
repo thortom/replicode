@@ -1,7 +1,10 @@
 ; as pong, debug combinations of CTPX, GTPX and PTPX; goal-driven.
+; a ball travels with out walls.
 
-; The views here are structured as [sln ijt sync res grp org]
-; objects.
+; The views here are structured as [sln ijt sync res grp org], some with an additional psln_thr (saliency change propagation threshold)
+
+;;;;;;;;;;;;;
+;; objects ;;
 
 b:(ent 1) [[SYNC_ONCE now 1 forever root nil]]
 ball:(ont 1) [[SYNC_ONCE now 0 forever root nil]]
@@ -14,9 +17,9 @@ blue_color:(ont 1) [[SYNC_ONCE now 1 forever root nil]]
 b_is_blue:(mk.val b color blue_color 1) |[]
 f_b_is_blue:(fact b_is_blue 0us MAX_TIME 1 1) [[SYNC_HOLD now 1 forever stdin nil]]
 
-
-; top-level model and drive injectors.
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; top-level model and drive injectors ;;
+; top-level model
 m_run_0:(mdl |[] []
    (fact (mk.val b: position_y : :) t0: t1: ::)
    (fact run t0: t1: ::); drive.
@@ -24,7 +27,47 @@ m_run_0:(mdl |[] []
 |[]
 [stdin drives] 1 1 1 0 1) [[SYNC_ONCE now 0 forever primary nil 1]]
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Additional test models ;;
 
+;m_run_1:(mdl |[] []
+;   (fact (cmd speak ["Hello" 2] 1) t2: t3: ::); (cmd speak ["Hello" 2] 1)
+;   (fact (mk.val b: position_y : :) t0: t1: ::)
+;|[]
+;|[]
+;[stdin drives] 1 1 1 0 1) [[SYNC_ONCE now 0 forever primary nil 1]]
+
+;m_run_2:(mdl |[] []
+;   (fact (prb [1 "print" "model 2:" [b position_y]]) t2: t3: ::)
+;   (fact (mk.val b: position_y : :) t0: t1: ::)
+;|[]
+;|[]
+;[stdin drives] 1 1 1 0 1) [[SYNC_ONCE now 0 forever primary nil 1]]
+
+;position:(ont 1) [[SYNC_ONCE now 0 forever root nil]]
+;m_run_3:(mdl |[] []
+;   (fact (cmd speak ["Hello" 2] 1) t2: t3: ::)
+;   (fact (mk.val b: position p: :) t0: t1: ::)
+;|[]
+;|[]
+;[stdin drives] 1 1 1 0 1) [[SYNC_ONCE now 0 forever primary nil 1]]
+;pgm_delayed_command:(pgm |[] |[] |[] []
+;   (inj []
+;      pos:(mk.val b position 1234 1)
+;      |[]
+;   )
+;   (inj []
+;      (fact pos after:(now) (+ after sampling_period) 1 1)
+;      [SYNC_PERIODIC now 1 1 stdin nil]
+;   )
+;   (prb [1 "print" "model 3 pattern injected" |[]])
+;1) |[]
+;ipgm_pgm_loop:(ipgm pgm_delayed_command |[] RUN_ONCE 2000000us VOLATILE SILENT 1) [[SYNC_ONCE now 0 forever stdin nil 1]]
+
+;; End of additional models ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; 
 init_run_pgm:(pgm |[] |[] |[] []
    (inj []
       f_run:(fact run t0:(+ now 50000us) (+ t0 sampling_period) 1 1)
@@ -38,6 +81,7 @@ init_run_pgm:(pgm |[] |[] |[] []
       (fact g t1:(now) t1 1 1)
       [SYNC_ONCE t1 1 forever primary nil]
    )
+   (prb [1 "print" "init_run_pgm goal" |[]])
 1) |[]
 
 init_run_ipgm:(ipgm init_run_pgm |[] RUN_ONCE 50000us VOLATILE SILENT 1) [[SYNC_ONCE now 0 1 drives nil 1]]
@@ -57,6 +101,7 @@ success_run_pgm:(pgm |[] []
       (fact g t1:(now) t1 1 1)
       [SYNC_ONCE t1 1 forever primary nil]
    )
+   (prb [1 "print" "success_run_pgm goal" |[]])
 1) |[]
 
 success_run_ipgm:(ipgm success_run_pgm |[] RUN_ALWAYS 0us VOLATILE NOTIFY 1) [[SYNC_ONCE now 0 forever drives nil 1]]
@@ -76,12 +121,26 @@ failure_run_pgm:(pgm |[] []
       (fact g t1:(now) t1 1 1)
       [SYNC_ONCE t1 1 forever primary nil]
    )
+   (prb [1 "print" "failure_run_pgm goal" |[]])
 1) |[]
 
 failure_run_ipgm:(ipgm failure_run_pgm |[] RUN_ALWAYS 0us VOLATILE SILENT 1) [[SYNC_ONCE now 0 forever drives nil 1]]
 
+;;;;;;;;;;;
+;; DEBUG ;;
+;; This program activates by the LH side of the m_run_0
+pgm_mkval:(pgm |[]
+[]
+   (ptn f:(fact mkval:(mk.val o1: position_y pos: ::) ::) |[]); (fact (mk.val b: position_y : :) t0: t1: ::)
+|[]
+[]
+   (prb [1 "print" "model LH fact caught" [o1 pos]])
+1) |[]
 
-; input generators.
+ipgm_pgm_mkval:(ipgm pgm_mkval |[] RUN_ALWAYS 50000us VOLATILE SILENT 1) [[SYNC_PERIODIC now 0 forever stdin nil 1]]
+
+;;;;;;;;;;;;;;;;;;;;;;
+;; input generators ;;
 
 ; Initialization of the ball position and speed
 start:(pgm |[] |[] |[] []
@@ -105,7 +164,7 @@ start:(pgm |[] |[] |[] []
 
 istart:(ipgm start |[] RUN_ONCE sampling_period VOLATILE SILENT 1) [[SYNC_ONCE now 0 forever stdin nil 1]]
 
-; Update program for the postion and speed of the ball
+; Update program for the postion and speed of the ball (the main loop)
 pgm0:(pgm |[] []
    (ptn f:(fact (mk.val b position_y py: :) after: before: ::) |[])
    (ptn (fact (mk.val b speed_y sy: :) ::) |[])

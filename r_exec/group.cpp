@@ -1023,10 +1023,7 @@ bool Group::load(View *view, Code *object)
         std::string str = Utils::GetString<Code>(view->object, ICPP_PGM_NAME);
 
         LOG_DEBUG << "Loading ICCP_PGM_NME" << str;
-        LOG_DEBUG << "before -   r_exec::_Mem::Get() = " << r_exec::_Mem::Get();
-
         Controller *c = CPPPrograms::New(str, view); // now will be added to the deadline at start time.
-        LOG_DEBUG << "after -    r_exec::_Mem::Get() = " << r_exec::_Mem::Get();
 
         if (!c) {
             return false;

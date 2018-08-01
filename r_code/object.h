@@ -284,14 +284,11 @@ public:
 
     void trace() const
     {
-        std::string trace = "--------\n";
+        LOG_TRACE << "--------";
+        LOG_TRACE << "Code size: " << code_size() << ", for OID: " << get_oid();
         for (uint16_t i = 0; i < code_size(); ++i) {
-            trace = trace + std::to_string(i) + "\t";
             code(i).trace();
         }
-
-        LOG_TRACE << trace;
-        LOG_DEBUG << "OID: " << get_oid();
     }
 };
 

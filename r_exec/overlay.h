@@ -39,8 +39,7 @@
 #include <mutex>               // for mutex
 #include <vector>              // for vector
 
-#include <replicode_common.h>  // for P, _Object
-#include <replicode_common.h>   // for REPLICODE_EXPORT
+#include <replicode_common.h>  // for P, _Object, REPLICODE_EXPORT
 
 using namespace r_code;
 

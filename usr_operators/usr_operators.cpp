@@ -81,6 +81,13 @@ void GetOperatorName(char *op_name, int op_index)
         ++op_index;
         return;
     }
+
+    if (op_index == 4) {
+        std::string s = "test_device";
+        memcpy(op_name, s.c_str(), s.length());
+        ++op_index;
+        return;
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -1,0 +1,62 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; This replicode script is not finished. This script is missing the goal and it drive system. ;;
+; AERA should figure out the systems pattern
+; The pattern here is that when A is positive then B is true otherwise false
+; We set the goal to C=true, to guide the system
+
+;;;;;;;;;;;;;
+;; objects ;;
+
+A:(ent 1) [[SYNC_ONCE now 1 forever root nil]]
+B:(ent 1) [[SYNC_ONCE now 1 forever root nil]]
+data:(ont 1) [[SYNC_ONCE now 0 forever root nil]]
+
+A_is_data:(mk.val A essence data 1) |[]; (mk.val an_object a_property a_value)
+f_A_is_data:(fact A_is_data 0us MAX_TIME 1 1) [[SYNC_AXIOM now 1 forever stdin nil]]
+B_is_data:(mk.val B essence data 1) |[]
+f_B_is_data:(fact B_is_data 0us MAX_TIME 1 1) [[SYNC_AXIOM now 1 forever stdin nil]]
+
+;;;;;;;;;;;;;;;;
+;; attributes ;;
+
+A_value:(ont 1) [[SYNC_ONCE now 0 forever root nil]]
+B_value:(ont 1) [[SYNC_ONCE now 0 forever root nil]]
+
+;;;;;;;;;;;;;;;;;;;;;;
+;; input generators ;;
+
+; Start program, sets the initial values
+start:(pgm |[] |[] |[] []
+   (inj []
+      a_mkval:(mk.val A A_value 1 1); A starts at A_value=1
+      |[]
+   )
+   (inj []
+      (fact a_mkval after:(now) (+ after sampling_period) 1 1); a_mkval is a fact from now until "now + sampling_period"
+      [SYNC_PERIODIC now 1 1 stdin nil]
+   )
+1) |[]
+
+istart:(ipgm start |[] RUN_ONCE sampling_period VOLATILE SILENT 1) [[SYNC_ONCE now 0 forever stdin nil 1]]
+
+; The main loop, updates all values
+pgm0:(pgm |[] []
+   (ptn f:(fact (mk.val A A_value av: :) after: before: ::) |[])
+|[] []
+   (inj []
+      a_mkval:(mk.val A A_value (- (rnd 2) 1) 1); A takes a random value on the interval [0, 2]
+      |[]
+   )
+   (inj []
+      b_mkval:(mk.val B B_value (> av 0) 1); B is true if A_value > 0 else false (TODO: The > operator seems buggy)
+      |[]
+   )
+   (inj []
+      (fact a_mkval (+ after sampling_period) (+ before sampling_period) 1 1)
+      [SYNC_PERIODIC (+ f.vw.ijt sampling_period) 1 1 stdin nil]
+   )
+   (cmd test_device [a_mkval] 1)
+   (cmd test_device [b_mkval] 1)
+1) |[]
+
+ipgm0:(ipgm pgm0 |[] RUN_ALWAYS 20000us VOLATILE NOTIFY 1) [[SYNC_ONCE now 0 forever stdin nil 1]]

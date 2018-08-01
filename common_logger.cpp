@@ -34,6 +34,7 @@ BOOST_LOG_GLOBAL_LOGGER_INIT(logger, boost::log::sources::severity_logger_mt) {
     boost::shared_ptr< file_sink > sink_file = boost::make_shared< file_sink >(
             boost::log::keywords::file_name = "./logs/%Y-%m-%d.%N.log", // File name pattern
             boost::log::keywords::rotation_size = 1 * 1024 * 1024,      // Rotate files every 10 MiB
+            boost::log::keywords::auto_flush = true,                    // Decrease the chance of lost logging in case of program crash (degrades performance)
             boost::log::keywords::open_mode = std::ios_base::app        // Appends to last log file
     );
 
